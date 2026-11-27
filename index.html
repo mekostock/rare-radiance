@@ -391,15 +391,11 @@
   @media(min-width:861px){.builder-side{position:sticky;top:88px}}
   .builder-visual{margin-bottom:18px}
   .builder-visual-frame{
-    position:relative;background:#080807;border:1px solid var(--line);padding:10px;
+    position:relative;background:#000;border:1px solid var(--line);padding:0;overflow:hidden;
   }
-  .builder-visual-frame img{
-    width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;background:#000;
-    transition:opacity .28s ease;
-  }
-  .builder-visual-frame img.is-fading{opacity:.25}
+  .builder-draw svg{width:100%;height:auto;display:block;background:#000}
   .builder-visual-badge{
-    position:absolute;top:18px;left:18px;background:rgba(5,5,5,.88);border:1px solid var(--gold);
+    position:absolute;top:12px;left:12px;background:rgba(5,5,5,.88);border:1px solid var(--gold);
     color:var(--gold-light);font-size:10px;letter-spacing:.28em;text-transform:uppercase;font-weight:600;
     padding:7px 10px 7px 13px;line-height:1;
   }
@@ -973,14 +969,14 @@
 
         <div class="preview-panel builder-side">
           <h3>Your Piece — Live Preview</h3>
-          <p>See your piece as you build it. Pick a type of piece on the left and the real photo here updates right away — then it keeps updating with every choice you change.</p>
+          <p>See your piece as you build it. The drawing here shows only the piece you are designing — pick a type, metal, stones and style on the left and it redraws instantly with every choice you change.</p>
           <div class="builder-visual">
             <div class="builder-visual-frame">
-              <img id="builderPreviewImg" src="photos/rings-hand-marquise-pear.jpg" alt="Hand wearing marquise and pear diamond engagement rings" />
+              <div class="builder-draw" id="builderDraw" role="img" aria-label="Live drawing of the custom piece you are building"></div>
               <span class="builder-visual-badge">Live Preview</span>
             </div>
-            <p class="builder-visual-caption" id="builderPreviewCaption">Engagement Rings — Marquise &amp; Pear</p>
-            <p class="builder-visual-meta" id="builderPreviewMeta">Pick a piece type to see a matching piece here — ring, earrings, necklace or bracelet.</p>
+            <p class="builder-visual-caption" id="builderPreviewCaption">Your Custom Piece</p>
+            <p class="builder-visual-meta" id="builderPreviewMeta">Start picking on the left — your piece is drawn here as you build it, and only your piece.</p>
           </div>
           <div class="summary-visual" aria-hidden="true">
             <svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="#e9c95c" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M14 10 H34 L42 20 L24 40 L6 20 Z"/><path d="M6 20 H42"/><path d="M14 10 L19 20 L24 40"/><path d="M34 10 L29 20 L24 40"/></svg>
@@ -1145,55 +1141,329 @@
     lines.push('Can you make this piece for me? Please let me know the next steps. Thank you!');
     return lines.join('\n');
   }
-  var previewPhotos = {
-    'Ring': { src:'photos/rings-hand-marquise-pear.jpg', alt:'Hand wearing marquise and pear diamond engagement rings', caption:'Engagement Rings — Marquise & Pear' },
-    'Necklace': { src:'photos/necklaces-tennis-trio.jpg', alt:'Three tennis necklaces laid out side by side', caption:'Tennis Necklaces — Trio' },
-    'Earrings': { src:'photos/earrings-studs-four.jpg', alt:'Four pairs of stud earrings on display cards — cluster, butterfly and square styles', caption:'Stud Earrings' },
-    'Bracelet': { src:'photos/earrings-hearts-bracelet.jpg', alt:'Two pairs of heart earrings on display cards with a heart tennis bracelet between them', caption:'Heart Tennis Bracelet' },
-    'Custom Piece': { src:'photos/rings-hand-four-rings.jpg', alt:'Hand wearing four statement rings — a pavé crown ring, a gold coin ring, a pavé star ring and a baguette ring', caption:'Statement Rings — Custom Inspiration' }
-  };
-  var previewImg = document.getElementById('builderPreviewImg');
+  /* ---------- Live drawn preview: an SVG illustration of ONLY the customer's own piece ---------- */
+  var drawBox = document.getElementById('builderDraw');
   var previewCaption = document.getElementById('builderPreviewCaption');
   var previewMeta = document.getElementById('builderPreviewMeta');
-  var lastPreviewSrc = previewImg ? previewImg.getAttribute('src') : '';
-  function updatePreviewPhoto(){
-    if(!previewImg) return;
-    var entry = previewPhotos[state.piece] || previewPhotos['Ring'];
-    /* Small refinements using other picks — still only real photos already on the site */
-    if(state.piece === 'Ring' && state.style === 'Bold Statement'){
-      entry = { src:'photos/rings-hand-four-rings.jpg', alt:'Hand wearing four statement rings — a pavé crown ring, a gold coin ring, a pavé star ring and a baguette ring', caption:'Four Statement Rings' };
-    } else if(state.piece === 'Ring' && state.style === 'Vintage'){
-      entry = { src:'photos/rings-hand-hamsa.jpg', alt:'Hand wearing a gold link band ring and a large pavé Hamsa hand ring', caption:'Link Band & Hamsa Hand Ring' };
-    } else if(state.piece === 'Necklace' && state.stones.indexOf('Emerald') > -1){
-      entry = { src:'photos/necklaces-tennis-quartet.jpg', alt:'Four tennis necklaces laid out side by side, including green and yellow stone styles', caption:'Tennis Necklaces — Quartet' };
-    } else if(state.piece === 'Earrings' && state.style === 'Bold Statement'){
-      entry = { src:'photos/earrings-hoops-four.jpg', alt:'Four pairs of hoop earrings on display cards', caption:'Hoop Earrings' };
-    } else if(state.piece === 'Earrings' && state.stones.length){
-      entry = { src:'photos/earrings-hearts-four.jpg', alt:'Four pairs of heart-shaped earrings on display cards in gold and silver tones', caption:'Heart Earrings' };
+
+  var METAL_GRAD = { yellow:'mg-yellow', white:'mg-white', rose:'mg-rose', silver:'mg-silver' };
+  function metalKey(){
+    if(state.metal === 'White Gold') return 'white';
+    if(state.metal === 'Rose Gold') return 'rose';
+    if(state.metal === 'Silver Tone') return 'silver';
+    if(state.metal === 'Two-Tone') return 'two';
+    return 'yellow';
+  }
+  function metalPaint(seg){
+    var k = metalKey();
+    if(k === 'two') return 'url(#' + ((seg || 0) % 2 ? METAL_GRAD.white : METAL_GRAD.yellow) + ')';
+    return 'url(#' + METAL_GRAD[k] + ')';
+  }
+  function effStones(){
+    return state.stones.filter(function(s){ return s !== 'No Stones' && s.indexOf('Not sure') !== 0; });
+  }
+  var MIXED_PALETTE = ['Diamond','Emerald','Ruby','Sapphire'];
+  function stoneTypeAt(i){
+    var list = effStones();
+    if(!list.length) return null;
+    var t = list[i % list.length];
+    if(t === 'Mixed Stones') return MIXED_PALETTE[i % MIXED_PALETTE.length];
+    return t;
+  }
+  function layoutKind(){
+    if(state.style === 'Solitaire') return 'solitaire';
+    if(state.style === 'Halo') return 'halo';
+    if(state.style === 'Tennis Style') return 'tennis';
+    if(state.style === 'Bold Statement') return 'bold';
+    if(state.style === 'Delicate & Minimal') return 'delicate';
+    return 'classic';
+  }
+  function polar(cx, cy, r, deg){
+    var rad = (deg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+  function ellipsePoint(cx, cy, rx, ry, deg){
+    var rad = deg * Math.PI / 180;
+    return { x: cx + rx * Math.cos(rad), y: cy + ry * Math.sin(rad) };
+  }
+  function arcSeg(cx, cy, r, a0, a1){
+    var p0 = polar(cx, cy, r, a0), p1 = polar(cx, cy, r, a1);
+    var large = (a1 - a0) > 180 ? 1 : 0;
+    return 'M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + p1.x.toFixed(1) + ' ' + p1.y.toFixed(1);
+  }
+  function sparkle(x, y, s){
+    return '<path d="M' + x.toFixed(1) + ' ' + (y - s).toFixed(1) + ' L' + (x + s * .22).toFixed(1) + ' ' + (y - s * .22).toFixed(1) + ' L' + (x + s).toFixed(1) + ' ' + y.toFixed(1) + ' L' + (x + s * .22).toFixed(1) + ' ' + (y + s * .22).toFixed(1) + ' L' + x.toFixed(1) + ' ' + (y + s).toFixed(1) + ' L' + (x - s * .22).toFixed(1) + ' ' + (y + s * .22).toFixed(1) + ' L' + (x - s).toFixed(1) + ' ' + y.toFixed(1) + ' L' + (x - s * .22).toFixed(1) + ' ' + (y - s * .22).toFixed(1) + ' Z" fill="#ffffff" opacity=".9"/>';
+  }
+  function stoneEl(x, y, r, idx){
+    var t = stoneTypeAt(idx || 0);
+    if(!t) return '';
+    var g = 'sg-' + t.toLowerCase();
+    var s = '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="url(#' + g + ')" stroke="rgba(0,0,0,.4)" stroke-width=".8"/>';
+    s += '<ellipse cx="' + (x - r * .32).toFixed(1) + '" cy="' + (y - r * .38).toFixed(1) + '" rx="' + (r * .34).toFixed(1) + '" ry="' + (r * .2).toFixed(1) + '" fill="rgba(255,255,255,.85)"/>';
+    if(t === 'Diamond' && r >= 10) s += sparkle(x + r * .95, y - r * .95, r * .5);
+    return s;
+  }
+  function bezelStone(x, y, r, idx){
+    var s = '<circle cx="' + x + '" cy="' + y + '" r="' + (r + 3.5) + '" fill="' + metalPaint(idx || 0) + '" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>';
+    s += stoneEl(x, y, r, idx);
+    return s;
+  }
+  function haloCluster(x, y, centerR, haloR, ringDist, count){
+    var s = '';
+    for(var i = 0; i < count; i++){
+      var p = polar(x, y, ringDist, i * (360 / count));
+      s += stoneEl(p.x, p.y, haloR, i + 1);
     }
-    if(entry.src !== lastPreviewSrc){
-      lastPreviewSrc = entry.src;
-      previewImg.classList.add('is-fading');
-      var nextSrc = entry.src, nextAlt = entry.alt;
-      setTimeout(function(){
-        previewImg.src = nextSrc;
-        previewImg.alt = nextAlt;
-        previewImg.classList.remove('is-fading');
-      }, 140);
-      previewImg.alt = entry.alt;
+    s += bezelStone(x, y, centerR, 0);
+    return s;
+  }
+  function ringBand(cx, cy, r, w){
+    if(metalKey() !== 'two'){
+      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + metalPaint(0) + '" stroke-width="' + w + '"/>';
     }
-    if(previewCaption) previewCaption.textContent = entry.caption;
+    var s = '';
+    for(var i = 0; i < 12; i++){
+      s += '<path d="' + arcSeg(cx, cy, r, i * 30, i * 30 + 31) + '" fill="none" stroke="' + metalPaint(i) + '" stroke-width="' + w + '" stroke-linecap="round"/>';
+    }
+    return s;
+  }
+  function braceletBand(cx, cy, rx, ry, w){
+    var s = '', n = 24;
+    for(var i = 0; i < n; i++){
+      var p0 = ellipsePoint(cx, cy, rx, ry, i * (360 / n));
+      var p1 = ellipsePoint(cx, cy, rx, ry, (i + 1) * (360 / n) + 1);
+      s += '<path d="M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' L' + p1.x.toFixed(1) + ' ' + p1.y.toFixed(1) + '" stroke="' + metalPaint(i) + '" stroke-width="' + w + '" stroke-linecap="round" fill="none"/>';
+    }
+    return s;
+  }
+  function qPoint(t){
+    return {
+      x: (1 - t) * (1 - t) * 55 + 2 * (1 - t) * t * 200 + t * t * 345,
+      y: (1 - t) * (1 - t) * 35 + 2 * (1 - t) * t * 290 + t * t * 35
+    };
+  }
+  function chainLinks(){
+    var s = '', n = 22;
+    for(var i = 0; i <= n; i++){
+      var t = i / n;
+      if(Math.abs(t - .5) < .045) continue;
+      var p = qPoint(t);
+      s += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4.6" fill="none" stroke="' + metalPaint(i) + '" stroke-width="2.4"/>';
+    }
+    return s;
+  }
+
+  function drawRing(){
+    var kind = layoutKind(), has = effStones().length > 0;
+    var cx = 200, cy = 168, r = 78;
+    var bandW = kind === 'delicate' ? 7 : (kind === 'tennis' ? 9 : 13);
+    var s = ringBand(cx, cy, r, bandW);
+    if(!has) return s;
+    var i, p;
+    if(kind === 'tennis'){
+      for(i = 0; i < 24; i++){ p = polar(cx, cy, r, i * 15); s += stoneEl(p.x, p.y, 6, i); }
+    } else if(kind === 'solitaire'){
+      s += '<path d="M186 97 L214 97 L206 79 L194 79 Z" fill="' + metalPaint(0) + '"/>';
+      s += bezelStone(200, 74, 19, 0);
+    } else if(kind === 'halo'){
+      s += haloCluster(200, 72, 14, 4.2, 21, 10);
+    } else if(kind === 'bold'){
+      var l = polar(cx, cy, r, -30), rr = polar(cx, cy, r, 30);
+      s += bezelStone(l.x, l.y - 2, 12, 1);
+      s += bezelStone(rr.x, rr.y - 2, 12, 2);
+      s += bezelStone(200, 70, 21, 0);
+    } else if(kind === 'delicate'){
+      s += bezelStone(200, 82, 8.5, 0);
+    } else {
+      var a = polar(cx, cy, r, -26), b = polar(cx, cy, r, 26);
+      s += stoneEl(a.x, a.y, 6.5, 1);
+      s += stoneEl(b.x, b.y, 6.5, 2);
+      s += bezelStone(200, 76, 14, 0);
+    }
+    return s;
+  }
+  function drawNecklace(){
+    var kind = layoutKind(), has = effStones().length > 0;
+    var s = '', i, p;
+    if(has && kind === 'tennis'){
+      for(i = 0; i <= 16; i++){
+        p = qPoint(0.04 + i * 0.0575);
+        s += stoneEl(p.x, p.y, 6.4, i);
+      }
+      s += bezelStone(200, 179, 9, 0);
+      return s;
+    }
+    s += chainLinks();
+    if(!has) return s;
+    var bail = '<path d="M194 157 L206 157 L203 172 L197 172 Z" fill="' + metalPaint(0) + '"/>';
+    if(kind === 'solitaire'){
+      s += bail + bezelStone(200, 192, 17, 0);
+    } else if(kind === 'halo'){
+      s += bail + haloCluster(200, 194, 13, 4, 20, 10);
+    } else if(kind === 'bold'){
+      s += bail;
+      s += bezelStone(168, 182, 12, 1);
+      s += bezelStone(232, 182, 12, 2);
+      s += bezelStone(200, 198, 19, 0);
+    } else if(kind === 'delicate'){
+      s += bail + bezelStone(200, 186, 9.5, 0);
+    } else {
+      s += bail;
+      var p1 = qPoint(.40), p2 = qPoint(.60);
+      s += stoneEl(p1.x, p1.y, 6, 1);
+      s += stoneEl(p2.x, p2.y, 6, 2);
+      s += bezelStone(200, 190, 14.5, 0);
+    }
+    return s;
+  }
+  function drawEarrings(){
+    var kind = layoutKind(), has = effStones().length > 0;
+    var s = '';
+    [138, 262].forEach(function(x, ei){
+      s += '<circle cx="' + x + '" cy="46" r="7" fill="none" stroke="' + metalPaint(ei) + '" stroke-width="3.4"/>';
+      if(!has){
+        s += '<path d="M' + x + ' 53 L' + x + ' 84" stroke="' + metalPaint(ei) + '" stroke-width="3.4"/>';
+        s += '<circle cx="' + x + '" cy="99" r="12" fill="' + metalPaint(ei + 1) + '"/>';
+        return;
+      }
+      var i;
+      if(kind === 'tennis'){
+        s += '<path d="M' + x + ' 53 L' + x + ' 172" stroke="' + metalPaint(ei) + '" stroke-width="2.6"/>';
+        for(i = 0; i < 5; i++) s += stoneEl(x, 70 + i * 25, 7, i + ei * 2);
+      } else if(kind === 'halo'){
+        s += '<path d="M' + x + ' 53 L' + x + ' 64" stroke="' + metalPaint(ei) + '" stroke-width="3"/>';
+        s += haloCluster(x, 92, 11, 3.6, 17.5, 9);
+      } else if(kind === 'bold'){
+        s += stoneEl(x, 63, 5.5, ei + 2);
+        s += '<path d="M' + x + ' 69 L' + x + ' 92" stroke="' + metalPaint(ei) + '" stroke-width="3"/>';
+        s += bezelStone(x, 117, 18, ei);
+      } else if(kind === 'delicate'){
+        s += stoneEl(x, 67, 6.5, ei);
+      } else if(kind === 'solitaire'){
+        s += bezelStone(x, 71, 12.5, ei);
+      } else {
+        s += stoneEl(x, 63, 5, ei + 2);
+        s += '<path d="M' + x + ' 68 L' + x + ' 84" stroke="' + metalPaint(ei) + '" stroke-width="3"/>';
+        s += bezelStone(x, 103, 12, ei);
+      }
+    });
+    return s;
+  }
+  function drawBracelet(){
+    var kind = layoutKind(), has = effStones().length > 0;
+    var cx = 200, cy = 156, rx = 126, ry = 76;
+    var bandW = kind === 'delicate' ? 8 : (kind === 'tennis' ? 9 : 13);
+    var s = braceletBand(cx, cy, rx, ry, bandW);
+    if(!has) return s;
+    var i, p;
+    if(kind === 'tennis'){
+      for(i = 0; i < 30; i++){ p = ellipsePoint(cx, cy, rx, ry, i * 12); s += stoneEl(p.x, p.y, 6, i); }
+    } else if(kind === 'solitaire'){
+      s += bezelStone(200, 74, 16, 0);
+    } else if(kind === 'halo'){
+      s += haloCluster(200, 72, 12.5, 3.8, 19, 10);
+    } else if(kind === 'bold'){
+      var a = ellipsePoint(cx, cy, rx, ry, 243), b = ellipsePoint(cx, cy, rx, ry, 297);
+      s += bezelStone(a.x, a.y, 12, 1);
+      s += bezelStone(b.x, b.y, 12, 2);
+      s += bezelStone(200, 70, 19, 0);
+    } else if(kind === 'delicate'){
+      s += bezelStone(200, 78, 8, 0);
+    } else {
+      var c1 = ellipsePoint(cx, cy, rx, ry, 246), c2 = ellipsePoint(cx, cy, rx, ry, 294);
+      s += stoneEl(c1.x, c1.y, 6.5, 1);
+      s += stoneEl(c2.x, c2.y, 6.5, 2);
+      s += bezelStone(200, 73, 13, 0);
+    }
+    return s;
+  }
+  function drawCustom(){
+    var kind = layoutKind(), has = effStones().length > 0;
+    var s = '', i, t, x, y;
+    if(has && kind === 'tennis'){
+      for(i = 0; i <= 12; i++){
+        t = i / 12;
+        s += stoneEl(84 + t * 232, 26 + Math.sin(t * Math.PI) * 34, 5.6, i);
+      }
+    } else {
+      for(i = 0; i <= 14; i++){
+        t = i / 14;
+        x = 84 + t * 232; y = 26 + Math.sin(t * Math.PI) * 34;
+        s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4.2" fill="none" stroke="' + metalPaint(i) + '" stroke-width="2.2"/>';
+      }
+    }
+    var scale = kind === 'bold' ? 1.14 : (kind === 'delicate' ? .78 : 1);
+    var gemFill = has ? 'url(#sg-' + (stoneTypeAt(0) || 'Diamond').toLowerCase() + ')' : metalPaint(0);
+    s += '<g transform="translate(200 158) scale(' + scale + ') translate(-200 -158)">';
+    s += '<path d="M196 60 L204 60 L208 84 L192 84 Z" fill="' + metalPaint(1) + '"/>';
+    s += '<polygon points="152,96 248,96 276,132 200,224 124,132" fill="' + gemFill + '" stroke="' + metalPaint(0) + '" stroke-width="5" stroke-linejoin="round"/>';
+    s += '<polyline points="124,132 276,132" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.6"/>';
+    s += '<polyline points="152,96 176,132 200,224" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.4"/>';
+    s += '<polyline points="248,96 224,132 200,224" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.4"/>';
+    s += '<polyline points="176,132 224,132 200,96" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/>';
+    s += '</g>';
+    if(has && kind === 'halo'){
+      for(i = 0; i < 14; i++){
+        var hp = ellipsePoint(200, 156, 94, 82, i * (360 / 14));
+        s += stoneEl(hp.x, hp.y, 4, i + 1);
+      }
+    }
+    return s;
+  }
+  function stoneGrad(name, c1, c2, c3){
+    return '<radialGradient id="sg-' + name.toLowerCase() + '" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="' + c1 + '"/><stop offset=".55" stop-color="' + c2 + '"/><stop offset="1" stop-color="' + c3 + '"/></radialGradient>';
+  }
+  function drawPreview(){
+    if(!drawBox) return;
+    var piece = state.piece || 'Ring';
+    var inner = '';
+    if(piece === 'Necklace') inner = drawNecklace();
+    else if(piece === 'Earrings') inner = drawEarrings();
+    else if(piece === 'Bracelet') inner = drawBracelet();
+    else if(piece === 'Custom Piece') inner = drawCustom();
+    else inner = drawRing();
+    var scale = 1;
+    if(state.size === 'Small / Petite') scale = .88;
+    else if(state.size === 'Large / Oversized') scale = 1.1;
+    var svg = '<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
+      + '<defs>'
+      + '<linearGradient id="mg-yellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6dd8a"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6d1c"/></linearGradient>'
+      + '<linearGradient id="mg-white" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#d8d8de"/><stop offset="1" stop-color="#8f8f99"/></linearGradient>'
+      + '<linearGradient id="mg-rose" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8d3c0"/><stop offset=".5" stop-color="#e3a58c"/><stop offset="1" stop-color="#a96a52"/></linearGradient>'
+      + '<linearGradient id="mg-silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f5f8"/><stop offset=".5" stop-color="#c3c9d1"/><stop offset="1" stop-color="#79828e"/></linearGradient>'
+      + stoneGrad('Diamond', '#ffffff', '#d7e6fa', '#a9c2e2')
+      + stoneGrad('Emerald', '#8ff0b3', '#17b564', '#0a7a3e')
+      + stoneGrad('Ruby', '#ff9aa7', '#d81f36', '#8f0f22')
+      + stoneGrad('Sapphire', '#9dbdff', '#2456c8', '#122f73')
+      + stoneGrad('Opal', '#ffffff', '#eae4f4', '#b7c6e0')
+      + stoneGrad('Pearl', '#ffffff', '#f4ecdc', '#d9caa9')
+      + '</defs>'
+      + '<rect x="0" y="0" width="400" height="300" fill="#000000"/>'
+      + '<g transform="translate(200 150) scale(' + scale + ') translate(-200 -150)">' + inner + '</g>'
+      + '</svg>';
+    drawBox.innerHTML = svg;
+    var label = 'Live drawing of your custom piece: ' + (state.piece || 'Ring')
+      + (state.metal ? ', ' + state.metal : '')
+      + (effStones().length ? ', ' + effStones().join(', ') : '')
+      + (state.style ? ', ' + state.style : '');
+    drawBox.setAttribute('aria-label', label);
+    if(previewCaption){
+      previewCaption.textContent = state.piece
+        ? 'Your ' + state.piece + (state.style ? ' — ' + state.style : '')
+        : 'Your Custom Piece';
+    }
     if(previewMeta){
       if(!state.piece){
-        previewMeta.textContent = 'Pick a piece type to see a matching piece here — ring, earrings, necklace or bracelet.';
+        previewMeta.textContent = 'Start picking on the left — your piece is drawn here as you build it, and only your piece.';
       } else {
-        var detail = [];
-        if(state.metal) detail.push(state.metal);
-        if(state.stones.length) detail.push(state.stones.join(' + '));
-        if(state.style) detail.push(state.style);
-        previewMeta.textContent = detail.length
-          ? 'Your ' + state.piece + ' in the making — ' + detail.join(' · ') + '. Reference photo from the collection above.'
-          : 'Showing a real ' + state.piece.toLowerCase() + ' from the collection. Add metal, stones and style and this preview keeps updating.';
+        var bits = [];
+        if(state.metal && state.metal.indexOf('Not sure') !== 0) bits.push(state.metal);
+        var es = effStones();
+        if(es.length) bits.push(es.join(' + '));
+        if(state.style) bits.push(state.style + ' style');
+        previewMeta.textContent = bits.length
+          ? 'Drawn live from your picks: ' + bits.join(' · ') + '.'
+          : 'Your ' + state.piece.toLowerCase() + ', drawn live — add a metal, stones and a style and watch it change.';
       }
     }
   }
@@ -1203,7 +1473,7 @@
     setSummary('sumStones', state.stones.length ? state.stones.join(', ') : '');
     setSummary('sumStyle', state.style);
     setSummary('sumSize', sizeText());
-    updatePreviewPhoto();
+    drawPreview();
     var svPiece = document.getElementById('svPiece');
     var svLine = document.getElementById('svLine');
     if(svPiece){
