@@ -44,42 +44,6 @@
   button,[role="button"],select,summary,input:not([type="checkbox"]){min-height:44px}
   textarea{min-height:110px}
 
-  /* ---------- Top phone bar — first thing on the page ---------- */
-  .top-phone-bar{
-    background:linear-gradient(180deg,var(--gold-light),var(--gold));
-    color:#0d0a00;text-align:center;
-    padding:12px 14px 13px;
-    border-bottom:1px solid #8a6d1c;
-  }
-  .top-phone-bar .tp-label{
-    display:block;font-size:11px;letter-spacing:.34em;text-transform:uppercase;font-weight:600;text-indent:.34em;
-  }
-  .top-phone-bar .tp-number{
-    display:inline-flex;align-items:center;justify-content:center;
-    font-family:"Cormorant Garamond",serif;font-size:clamp(30px,7.5vw,38px);font-weight:700;line-height:1.05;
-    color:#0d0a00;text-decoration:none;letter-spacing:.03em;margin-top:2px;min-height:44px;
-  }
-  .top-phone-bar .tp-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px}
-  .top-phone-bar .tp-actions a{
-    display:inline-flex;align-items:center;justify-content:center;min-height:44px;
-    padding:9px 22px;border-radius:2px;text-decoration:none;
-    font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;
-  }
-  .tp-call{background:#0d0a00;color:var(--gold-light) !important;border:1px solid #0d0a00}
-  .tp-text{background:transparent;color:#0d0a00 !important;border:1.5px solid #0d0a00}
-
-  /* ---------- Hero phone ---------- */
-  .hero-phone{margin:26px auto 0;max-width:560px}
-  .hero-phone p{margin:0;font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold-light);font-weight:600;text-indent:.4em}
-  .hero-phone .hp-number{
-    display:inline-flex;align-items:center;justify-content:center;margin-top:6px;
-    font-family:"Cormorant Garamond",serif;font-size:clamp(36px,8vw,48px);font-weight:700;line-height:1.1;
-    color:var(--gold-light);text-decoration:none;letter-spacing:.03em;min-height:44px;
-    text-shadow:0 2px 18px rgba(0,0,0,.6);
-  }
-  .hero-phone .hp-number:hover{color:var(--white)}
-  .hero-phone-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-
   /* ---------- Nav ---------- */
   .nav{
     position:sticky;top:0;z-index:50;
@@ -115,11 +79,6 @@
     font-weight:600 !important;border-radius:2px;padding:10px 18px !important;
   }
   .nav-cta:hover{filter:brightness(1.07);color:#000 !important}
-  .nav-phone{
-    color:var(--gold-light) !important;font-weight:600 !important;letter-spacing:.06em !important;text-transform:none !important;
-    font-size:14px !important;white-space:nowrap;border:1px solid var(--line);border-radius:2px;
-  }
-  .nav-phone:hover{color:var(--white) !important;border-color:var(--gold)}
   @media(max-width:640px){
     .brand-text{display:none}
     .nav-inner{height:60px;padding:0 10px;gap:8px}
@@ -127,11 +86,9 @@
     .nav-links a{padding:10px 6px;font-size:11px;letter-spacing:.08em;white-space:nowrap}
     .nav-links a[href="#how"],.nav-links a[href="#shop"]{display:none}
     .nav-cta{padding:10px 12px !important}
-    .nav-phone{font-size:12px !important;padding:10px 8px !important}
     .hero-inner{padding:28px 18px 52px}
   }
   @media(max-width:380px){
-    .nav-phone{font-size:11px !important}
     .nav-cta{font-size:10px !important}
   }
 
@@ -396,22 +353,42 @@
   .pay-note a{color:var(--gold-light);font-weight:500;text-decoration:none;white-space:nowrap}
   .pay-note a:hover{color:var(--white)}
 
-  /* ---------- Call / Text strip ---------- */
-  .call-strip{
-    margin:28px auto 0;max-width:760px;text-align:center;
-    border:1px solid var(--line);background:var(--coal);padding:20px 22px;
-  }
-  .call-strip p{margin:0;color:var(--muted);font-size:15.5px}
-  .call-strip p strong{color:var(--cream);font-weight:500}
-  .call-strip .phone-big{
-    display:inline-flex;align-items:center;justify-content:center;margin-top:12px;
-    font-family:"Cormorant Garamond",serif;font-size:30px;font-weight:700;letter-spacing:.04em;
-    color:var(--gold-light);text-decoration:none;line-height:1.1;min-height:44px;
-  }
-  .call-strip .phone-big:hover{color:var(--white)}
-  .call-strip small{display:block;margin-top:6px;color:var(--muted2);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
   .contact-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
   .contact-actions .btn{margin-top:0 !important}
+
+  /* ---------- Build Your Own ---------- */
+  .builder-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:20px;margin-top:42px;align-items:start}
+  @media(max-width:860px){.builder-grid{grid-template-columns:1fr}}
+  .bstep{border-top:1px solid var(--line-soft);padding:22px 0 6px}
+  .bstep:first-of-type{border-top:none;padding-top:4px}
+  .bstep-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+  .bstep-num{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:700;color:var(--gold);line-height:1;flex:none}
+  .bstep-head h4{font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:600;color:var(--white);margin:0}
+  .bstep-head p{color:var(--muted2);font-size:13px;margin:2px 0 0}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    min-height:44px;padding:10px 16px;border:1px solid rgba(245,239,224,.22);background:#0a0a09;color:var(--cream);
+    font-size:14px;font-weight:400;letter-spacing:.02em;border-radius:999px;cursor:pointer;
+  }
+  .chip:hover{border-color:var(--gold)}
+  .chip[aria-pressed="true"]{background:linear-gradient(180deg,var(--gold-light),var(--gold));color:#0d0a00;border-color:#e8c95e;font-weight:600}
+  .idea-btn{width:100%;margin-top:10px}
+  .idea-note{display:none;margin-top:12px;background:rgba(212,175,55,.1);border:1px solid var(--line);padding:14px 16px;font-size:14.5px;color:var(--cream);line-height:1.6}
+  .idea-note.show{display:block}
+  .idea-note strong{color:var(--gold-light)}
+  .summary-list{list-style:none;margin:0 0 18px;padding:0}
+  .summary-list li{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:15px}
+  .summary-list li span:first-child{color:var(--muted2);letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:500;padding-top:3px;flex:none}
+  .summary-list li span:last-child{color:var(--cream);text-align:right;font-weight:400}
+  .summary-list li span:last-child.empty{color:var(--muted2);font-weight:300;font-style:italic}
+  .summary-visual{
+    text-align:center;padding:20px 16px 16px;margin-bottom:18px;
+    background:radial-gradient(circle at 50% 30%, rgba(212,175,55,.14), rgba(212,175,55,.02) 70%);
+    border:1px solid var(--line-soft);
+  }
+  .summary-visual .sv-piece{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:600;color:var(--white);line-height:1.15;margin:8px 0 0}
+  .summary-visual .sv-line{color:var(--gold-pale);font-size:14px;margin:4px 0 0;letter-spacing:.04em}
+
 
   /* ---------- Contact ---------- */
   .contact-band{
@@ -441,15 +418,6 @@
 </head>
 <body>
 
-<div class="top-phone-bar" role="region" aria-label="Call or text Rare Radiance">
-  <span class="tp-label">Call or Text to Order</span>
-  <a class="tp-number" href="tel:+16469919912">(646) 991-9912</a>
-  <div class="tp-actions">
-    <a class="tp-call" href="tel:+16469919912">Call Now</a>
-    <a class="tp-text" href="sms:+16469919912">Text Us</a>
-  </div>
-</div>
-
 <header class="nav">
   <div class="nav-inner">
     <a class="brand" href="#top" aria-label="Rare Radiance — home">
@@ -459,7 +427,7 @@
     <nav class="nav-links" aria-label="Main">
       <a href="#shop">Shop</a>
       <a href="#how">How to Order</a>
-      <a href="tel:+16469919912" class="nav-phone" aria-label="Call or text Rare Radiance at (646) 991-9912">(646) 991-9912</a>
+      <a href="#build">Build Your Own</a>
       <a href="#order" class="nav-cta">DM to Order</a>
     </nav>
   </div>
@@ -476,17 +444,10 @@
       <p class="hero-eyebrow">Online Jewelry Store</p>
       <h1>Jewelry that catches <em>every light</em></h1>
       <p class="hero-sub">Rings, necklaces, earrings, bracelets and custom pieces — browse the categories below, then message to order. Every order starts with a DM.</p>
-      <div class="hero-phone">
-        <p>Call or Text to Order</p>
-        <a class="hp-number" href="tel:+16469919912">(646) 991-9912</a>
-        <div class="hero-phone-actions">
-          <a class="btn btn-gold" href="tel:+16469919912">Call (646) 991-9912</a>
-          <a class="btn btn-ghost" href="sms:+16469919912">Text (646) 991-9912</a>
-        </div>
-      </div>
       <div class="hero-actions">
         <a class="btn btn-gold" href="#shop">Shop by Category</a>
         <a class="btn btn-ghost" href="#how">How Ordering Works</a>
+        <a class="btn btn-ghost" href="#build">Build Your Own</a>
       </div>
       <div class="hero-cats" aria-hidden="true">
         <span>Rings</span><span>Earrings</span><span>Bracelets</span><span>Necklaces</span><span>Custom</span>
@@ -836,7 +797,7 @@
         </div>
       </div>
 
-      <p class="pay-note">For payment details, DM us or call or text <a href="tel:+16469919912">(646) 991-9912</a> when you place your order.</p>
+      <p class="pay-note">For payment details, DM us when you place your order.</p>
     </div>
   </section>
 
@@ -845,17 +806,7 @@
     <div class="wrap">
       <p class="kicker">DM to Order</p>
       <h2>Start Your Order</h2>
-      <p class="section-lead">Fill this in and your message writes itself. Copy it and paste it into a DM to place your order — or call or text us directly.</p>
-
-      <div class="call-strip">
-        <p><strong>Prefer to call or text to order?</strong> Reach Rare Radiance directly:</p>
-        <a class="phone-big" href="tel:+16469919912">(646) 991-9912</a>
-        <small>Tap the number to call — or use the buttons below to text</small>
-        <div class="contact-actions">
-          <a class="btn btn-gold" href="tel:+16469919912">Call (646) 991-9912</a>
-          <a class="btn btn-ghost" href="sms:+16469919912">Text (646) 991-9912</a>
-        </div>
-      </div>
+      <p class="section-lead">Fill this in and your message writes itself. Copy it and paste it into a DM to place your order.</p>
 
       <div class="order-grid">
         <div class="form-panel">
@@ -900,16 +851,138 @@
     </div>
   </section>
 
+  <section class="section" id="build">
+    <div class="wrap">
+      <p class="kicker">Custom Design Studio</p>
+      <h2>Build Your Own</h2>
+      <p class="section-lead">Design your piece step by step — pick the type, metal, stones, style and size, or describe your idea in your own words and let the builder turn it into design choices for you. Your summary builds live as you go, then turns into a ready-to-send DM.</p>
+
+      <div class="builder-grid">
+        <div class="form-panel">
+          <h3>Design Your Piece</h3>
+          <p>Tap a choice in each step. You can change anything at any time — your summary on the side updates instantly.</p>
+
+          <div class="bstep" data-group="piece">
+            <div class="bstep-head"><span class="bstep-num">1</span><div><h4>Type of Piece</h4><p>What are we making?</p></div></div>
+            <div class="chip-row" role="group" aria-label="Type of piece">
+              <button class="chip" type="button" data-value="Ring" aria-pressed="false">Ring</button>
+              <button class="chip" type="button" data-value="Necklace" aria-pressed="false">Necklace</button>
+              <button class="chip" type="button" data-value="Earrings" aria-pressed="false">Earrings</button>
+              <button class="chip" type="button" data-value="Bracelet" aria-pressed="false">Bracelet</button>
+              <button class="chip" type="button" data-value="Custom Piece" aria-pressed="false">Something Custom</button>
+            </div>
+          </div>
+
+          <div class="bstep" data-group="metal">
+            <div class="bstep-head"><span class="bstep-num">2</span><div><h4>Metal</h4><p>The finish your piece is built in.</p></div></div>
+            <div class="chip-row" role="group" aria-label="Metal">
+              <button class="chip" type="button" data-value="Yellow Gold" aria-pressed="false">Yellow Gold</button>
+              <button class="chip" type="button" data-value="White Gold" aria-pressed="false">White Gold</button>
+              <button class="chip" type="button" data-value="Rose Gold" aria-pressed="false">Rose Gold</button>
+              <button class="chip" type="button" data-value="Silver Tone" aria-pressed="false">Silver Tone</button>
+              <button class="chip" type="button" data-value="Two-Tone" aria-pressed="false">Two-Tone</button>
+              <button class="chip" type="button" data-value="Not sure — help me choose" aria-pressed="false">Not Sure Yet</button>
+            </div>
+          </div>
+
+          <div class="bstep" data-group="stones">
+            <div class="bstep-head"><span class="bstep-num">3</span><div><h4>Stones</h4><p>Tap one or more — or keep it clean with no stones.</p></div></div>
+            <div class="chip-row" role="group" aria-label="Stones">
+              <button class="chip" type="button" data-value="Diamond" aria-pressed="false">Diamond</button>
+              <button class="chip" type="button" data-value="Emerald" aria-pressed="false">Emerald</button>
+              <button class="chip" type="button" data-value="Sapphire" aria-pressed="false">Sapphire</button>
+              <button class="chip" type="button" data-value="Ruby" aria-pressed="false">Ruby</button>
+              <button class="chip" type="button" data-value="Opal" aria-pressed="false">Opal</button>
+              <button class="chip" type="button" data-value="Pearl" aria-pressed="false">Pearl</button>
+              <button class="chip" type="button" data-value="Mixed Stones" aria-pressed="false">Mixed Stones</button>
+              <button class="chip" type="button" data-value="No Stones" aria-pressed="false">No Stones</button>
+              <button class="chip" type="button" data-value="Not sure — help me choose" aria-pressed="false">Not Sure Yet</button>
+            </div>
+          </div>
+
+          <div class="bstep" data-group="style">
+            <div class="bstep-head"><span class="bstep-num">4</span><div><h4>Style</h4><p>The look and feel of the finished piece.</p></div></div>
+            <div class="chip-row" role="group" aria-label="Style">
+              <button class="chip" type="button" data-value="Classic" aria-pressed="false">Classic</button>
+              <button class="chip" type="button" data-value="Modern" aria-pressed="false">Modern</button>
+              <button class="chip" type="button" data-value="Vintage" aria-pressed="false">Vintage</button>
+              <button class="chip" type="button" data-value="Bold Statement" aria-pressed="false">Bold Statement</button>
+              <button class="chip" type="button" data-value="Delicate &amp; Minimal" aria-pressed="false">Delicate &amp; Minimal</button>
+              <button class="chip" type="button" data-value="Tennis Style" aria-pressed="false">Tennis Style</button>
+              <button class="chip" type="button" data-value="Halo" aria-pressed="false">Halo</button>
+              <button class="chip" type="button" data-value="Solitaire" aria-pressed="false">Solitaire</button>
+            </div>
+          </div>
+
+          <div class="bstep" data-group="size">
+            <div class="bstep-head"><span class="bstep-num">5</span><div><h4>Size / Fit</h4><p>Pick a fit, then add your exact size below if you know it.</p></div></div>
+            <div class="chip-row" role="group" aria-label="Size or fit">
+              <button class="chip" type="button" data-value="Small / Petite" aria-pressed="false">Small / Petite</button>
+              <button class="chip" type="button" data-value="Standard" aria-pressed="false">Standard</button>
+              <button class="chip" type="button" data-value="Large / Oversized" aria-pressed="false">Large / Oversized</button>
+              <button class="chip" type="button" data-value="Not sure — help me with sizing" aria-pressed="false">Not Sure Yet</button>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:20px">
+            <label for="bExactSize">Exact Size <span style="letter-spacing:0;text-transform:none;color:var(--muted2)">(optional — ring size, chain length, wrist size…)</span></label>
+            <input id="bExactSize" type="text" placeholder="e.g. Ring size 7, 18-inch chain" />
+          </div>
+
+          <div class="bstep" style="margin-top:6px">
+            <div class="bstep-head"><span class="bstep-num">✦</span><div><h4>Describe Your Idea</h4><p>In your own words — the builder will read it and set your choices.</p></div></div>
+            <div class="field" style="margin-bottom:0">
+              <label for="bIdea">Your Idea</label>
+              <textarea id="bIdea" placeholder="e.g. I want a vintage yellow gold ring with an emerald in the middle, delicate band, ring size 7, for my anniversary…"></textarea>
+            </div>
+            <button class="btn btn-ghost idea-btn" type="button" id="ideaBtn">✦ Turn My Idea Into a Design</button>
+            <div class="idea-note" id="ideaNote" role="status"></div>
+          </div>
+
+          <div class="field" style="margin-top:20px;margin-bottom:0">
+            <label for="bName">Your Name</label>
+            <input id="bName" type="text" placeholder="Your name" />
+          </div>
+          <div class="field" style="margin-top:16px;margin-bottom:0">
+            <label for="bOccasion">Occasion / Deadline <span style="letter-spacing:0;text-transform:none;color:var(--muted2)">(optional)</span></label>
+            <input id="bOccasion" type="text" placeholder="e.g. Birthday gift, needed by Dec 20" />
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <h3>Your Piece — Live Summary</h3>
+          <p>This is the piece you&rsquo;re building. It updates with every tap.</p>
+          <div class="summary-visual" aria-hidden="true">
+            <svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="#e9c95c" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M14 10 H34 L42 20 L24 40 L6 20 Z"/><path d="M6 20 H42"/><path d="M14 10 L19 20 L24 40"/><path d="M34 10 L29 20 L24 40"/></svg>
+            <p class="sv-piece" id="svPiece">Your custom piece</p>
+            <p class="sv-line" id="svLine">Start picking above and watch it come together.</p>
+          </div>
+          <ul class="summary-list">
+            <li><span>Piece</span><span id="sumPiece" class="empty">Not picked yet</span></li>
+            <li><span>Metal</span><span id="sumMetal" class="empty">Not picked yet</span></li>
+            <li><span>Stones</span><span id="sumStones" class="empty">Not picked yet</span></li>
+            <li><span>Style</span><span id="sumStyle" class="empty">Not picked yet</span></li>
+            <li><span>Size / Fit</span><span id="sumSize" class="empty">Not picked yet</span></li>
+          </ul>
+          <h3 style="margin-top:6px">Your DM Message</h3>
+          <p>When you&rsquo;re happy with your design, copy this and paste it into a DM to Rare Radiance — that sends your full design straight to us.</p>
+          <div class="preview-box" id="buildPreview" aria-live="polite"></div>
+          <button class="btn btn-gold copy-btn" type="button" id="buildCopyBtn">Copy My Design Message</button>
+          <div class="toast" id="buildToast" role="status">Copied — now paste it into a DM to Rare Radiance to start your custom piece.</div>
+          <p class="form-note">This builder prepares your message only — nothing is sent until you paste it into your DM.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CONTACT -->
   <div class="contact-band" id="contact">
     <img src="logo.jpg" alt="Rare Radiance logo" />
     <p class="kicker">Get in Touch</p>
-    <h2>Questions? Call, Text or Message Us</h2>
-    <p>For orders, custom piece ideas, or to see the latest pieces in any category, call or text <a href="tel:+16469919912" style="color:var(--gold-light);font-weight:500;text-decoration:none">(646) 991-9912</a> — or send a direct message. Build yours with the order form and send it over.</p>
+    <h2>Questions? Message Us</h2>
+    <p>For orders, custom piece ideas, or to see the latest pieces in any category, send a direct message. Build yours with the order form and send it over.</p>
     <div class="contact-actions">
-      <a class="btn btn-gold" href="tel:+16469919912">Call (646) 991-9912</a>
-      <a class="btn btn-gold" href="sms:+16469919912">Text (646) 991-9912</a>
-      <a class="btn btn-ghost" href="#order">DM to Order</a>
+      <a class="btn btn-gold" href="#order">DM to Order</a>
     </div>
   </div>
 
@@ -926,6 +999,81 @@
     <a href="#top">Back to Top</a>
   </nav>
 </footer>
+
+<script>
+(function(){
+  var nameEl = document.getElementById('fName');
+  var catEl = document.getElementById('fCategory');
+  var lookEl = document.getElementById('fLook');
+  var sizeEl = document.getElementById('fSize');
+  var preview = document.getElementById('preview');
+  var copyBtn = document.getElementById('copyBtn');
+  var toast = document.getElementById('toast');
+
+  function buildMessage(){
+    var name = nameEl.value.trim();
+    var cat = catEl.value;
+    var look = lookEl.value.trim();
+    var size = sizeEl.value.trim();
+    var lines = [];
+    lines.push('Hi Rare Radiance! I would like to order.');
+    if(name) lines.push('My name is ' + name + '.');
+    lines.push('Category: ' + cat);
+    if(look) lines.push('What I am looking for: ' + look);
+    if(size) lines.push('Size / details: ' + size);
+    lines.push('Can you send me photos and prices of what is available? Thank you!');
+    return lines.join('\n');
+  }
+
+  function update(){
+    preview.textContent = buildMessage();
+  }
+
+  [nameEl, catEl, lookEl, sizeEl].forEach(function(el){
+    el.addEventListener('input', update);
+    el.addEventListener('change', update);
+  });
+  update();
+
+  // Category cards pre-fill the form
+  var catBtns = document.querySelectorAll('[data-category]');
+  catBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      catEl.value = btn.getAttribute('data-category');
+      var look = btn.getAttribute('data-look');
+      if(look) lookEl.value = look;
+      update();
+      document.getElementById('order').scrollIntoView({behavior:'smooth'});
+      setTimeout(function(){ nameEl.focus({preventScroll:true}); }, 450);
+    });
+  });
+
+  copyBtn.addEventListener('click', function(){
+    var text = buildMessage();
+    function done(){
+      toast.classList.add('show');
+      copyBtn.textContent = 'Message Copied ✓';
+      setTimeout(function(){
+        toast.classList.remove('show');
+        copyBtn.textContent = 'Copy My Message';
+      }, 4000);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){ fallback(); });
+    } else { fallback(); }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch(e){}
+      document.body.removeChild(ta);
+      done();
+    }
+  });
+})();
+</script>
 
 <script>
 (function(){
