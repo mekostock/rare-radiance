@@ -393,7 +393,7 @@
   .builder-visual-frame{
     position:relative;background:#000;border:1px solid var(--line);padding:0;overflow:hidden;
   }
-  .builder-draw svg{width:100%;height:auto;display:block;background:#000}
+  .builder-photo{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#000}
   .builder-visual-badge{
     position:absolute;top:12px;left:12px;background:rgba(5,5,5,.88);border:1px solid var(--gold);
     color:var(--gold-light);font-size:10px;letter-spacing:.28em;text-transform:uppercase;font-weight:600;
@@ -969,14 +969,14 @@
 
         <div class="preview-panel builder-side">
           <h3>Your Piece — Live Preview</h3>
-          <p>See your piece as you build it. The drawing here shows only the piece you are designing — pick a type, metal, stones and style on the left and it redraws instantly with every choice you change.</p>
+          <p>See your piece as you build it. The photo here shows a real piece that matches what you are designing — pick a type, metal and stones on the left and it changes instantly with every choice you make.</p>
           <div class="builder-visual">
             <div class="builder-visual-frame">
-              <div class="builder-draw" id="builderDraw" role="img" aria-label="Live drawing of the custom piece you are building"></div>
+              <img class="builder-photo" id="builderPhoto" src="preview-images/preview-ring-yellow-diamond.webp" alt="Real photo of the piece you are building — a yellow gold ring with a diamond" />
               <span class="builder-visual-badge">Live Preview</span>
             </div>
             <p class="builder-visual-caption" id="builderPreviewCaption">Your Custom Piece</p>
-            <p class="builder-visual-meta" id="builderPreviewMeta">Start picking on the left — your piece is drawn here as you build it, and only your piece.</p>
+            <p class="builder-visual-meta" id="builderPreviewMeta">Start picking on the left — a real photo of your piece shows here as you build it.</p>
           </div>
           <div class="summary-visual" aria-hidden="true">
             <svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="#e9c95c" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M14 10 H34 L42 20 L24 40 L6 20 Z"/><path d="M6 20 H42"/><path d="M14 10 L19 20 L24 40"/><path d="M34 10 L29 20 L24 40"/></svg>
@@ -1141,418 +1141,52 @@
     lines.push('Can you make this piece for me? Please let me know the next steps. Thank you!');
     return lines.join('\n');
   }
-  /* ---------- Live drawn preview: an SVG illustration of ONLY the customer's own piece ---------- */
-  var drawBox = document.getElementById('builderDraw');
+  /* ---------- Live photo preview: a real photo matched to the customer's picks ---------- */
+  var previewImg = document.getElementById('builderPhoto');
   var previewCaption = document.getElementById('builderPreviewCaption');
   var previewMeta = document.getElementById('builderPreviewMeta');
 
-  var METAL_GRAD = { yellow:'mg-yellow', white:'mg-white', rose:'mg-rose', silver:'mg-silver' };
-  function metalKey(){
-    if(state.metal === 'White Gold') return 'white';
-    if(state.metal === 'Rose Gold') return 'rose';
-    if(state.metal === 'Silver Tone') return 'silver';
-    if(state.metal === 'Two-Tone') return 'two';
-    return 'yellow';
-  }
-  function metalPaint(seg){
-    var k = metalKey();
-    if(k === 'two') return 'url(#' + ((seg || 0) % 2 ? METAL_GRAD.white : METAL_GRAD.yellow) + ')';
-    return 'url(#' + METAL_GRAD[k] + ')';
-  }
+  var PREVIEW_PHOTOS = [
+    { piece:'Ring', metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-ring-yellow-diamond.webp', alt:'a yellow gold ring with a diamond' },
+    { piece:'Ring', metal:'White Gold', stone:'Diamond', src:'preview-images/preview-ring-white-diamond.webp', alt:'a white gold ring with a diamond' },
+    { piece:'Ring', metal:'Rose Gold', stone:'Diamond', src:'preview-images/preview-ring-rose-diamond.webp', alt:'a rose gold ring with a diamond' },
+    { piece:'Ring', metal:'Yellow Gold', stone:'Emerald', src:'preview-images/preview-ring-yellow-emerald.webp', alt:'a yellow gold ring with an emerald' },
+    { piece:'Ring', metal:'Yellow Gold', stone:'Ruby', src:'preview-images/preview-ring-yellow-ruby.webp', alt:'a yellow gold ring with a ruby' },
+    { piece:'Necklace', metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-necklace-yellow-diamond.webp', alt:'a yellow gold necklace with diamonds' },
+    { piece:'Earrings', metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-earrings-yellow-diamond.webp', alt:'yellow gold earrings with diamonds' },
+    { piece:'Bracelet', metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-bracelet-yellow-diamond.webp', alt:'a yellow gold bracelet with diamonds' },
+  ];
   function effStones(){
     return state.stones.filter(function(s){ return s !== 'No Stones' && s.indexOf('Not sure') !== 0; });
   }
-  var MIXED_PALETTE = ['Diamond','Emerald','Ruby','Sapphire'];
-  function stoneTypeAt(i){
-    var list = effStones();
-    if(!list.length) return null;
-    var t = list[i % list.length];
-    if(t === 'Mixed Stones') return MIXED_PALETTE[i % MIXED_PALETTE.length];
-    return t;
-  }
-  function layoutKind(){
-    if(state.style === 'Solitaire') return 'solitaire';
-    if(state.style === 'Halo') return 'halo';
-    if(state.style === 'Tennis Style') return 'tennis';
-    if(state.style === 'Bold Statement') return 'bold';
-    if(state.style === 'Delicate & Minimal') return 'delicate';
-    return 'classic';
-  }
-  function polar(cx, cy, r, deg){
-    var rad = (deg - 90) * Math.PI / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-  }
-  function ellipsePoint(cx, cy, rx, ry, deg){
-    var rad = deg * Math.PI / 180;
-    return { x: cx + rx * Math.cos(rad), y: cy + ry * Math.sin(rad) };
-  }
-  function arcSeg(cx, cy, r, a0, a1){
-    var p0 = polar(cx, cy, r, a0), p1 = polar(cx, cy, r, a1);
-    var large = (a1 - a0) > 180 ? 1 : 0;
-    return 'M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + p1.x.toFixed(1) + ' ' + p1.y.toFixed(1);
-  }
-  function sparkle(x, y, s){
-    return '<path d="M' + x.toFixed(1) + ' ' + (y - s).toFixed(1) + ' L' + (x + s * .22).toFixed(1) + ' ' + (y - s * .22).toFixed(1) + ' L' + (x + s).toFixed(1) + ' ' + y.toFixed(1) + ' L' + (x + s * .22).toFixed(1) + ' ' + (y + s * .22).toFixed(1) + ' L' + x.toFixed(1) + ' ' + (y + s).toFixed(1) + ' L' + (x - s * .22).toFixed(1) + ' ' + (y + s * .22).toFixed(1) + ' L' + (x - s).toFixed(1) + ' ' + y.toFixed(1) + ' L' + (x - s * .22).toFixed(1) + ' ' + (y - s * .22).toFixed(1) + ' Z" fill="#ffffff" opacity=".9"/>';
-  }
-  var gemClipSeq = 0;
-  function facetPoint(cx, cy, r, deg){
-    var rad = deg * Math.PI / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-  }
-  function stoneEl(x, y, r, idx){
-    var t = stoneTypeAt(idx || 0);
-    if(!t) return '';
-    var g = 'sg-' + t.toLowerCase();
-    var fx = x.toFixed(1), fy = y.toFixed(1);
-    if(t === 'Pearl'){
-      /* Pearl: a lustrous sphere, not a cut stone — soft sheen, one bright highlight, warm bounce light */
-      var ps = '<circle cx="' + fx + '" cy="' + fy + '" r="' + r + '" fill="url(#' + g + ')" stroke="rgba(120,100,60,.45)" stroke-width=".7"/>';
-      ps += '<ellipse cx="' + (x + r * .3).toFixed(1) + '" cy="' + (y + r * .4).toFixed(1) + '" rx="' + (r * .42).toFixed(1) + '" ry="' + (r * .2).toFixed(1) + '" fill="rgba(212,175,55,.16)"/>';
-      ps += '<ellipse cx="' + (x - r * .34).toFixed(1) + '" cy="' + (y - r * .4).toFixed(1) + '" rx="' + (r * .36).toFixed(1) + '" ry="' + (r * .22).toFixed(1) + '" fill="rgba(255,255,255,.95)"/>';
-      ps += '<circle cx="' + (x - r * .18).toFixed(1) + '" cy="' + (y - r * .2).toFixed(1) + '" r="' + Math.max(.8, r * .1).toFixed(1) + '" fill="rgba(255,255,255,.85)"/>';
-      if(r >= 9) ps += sparkle(x + r * .9, y - r * .9, r * .42);
-      return ps;
-    }
-    gemClipSeq++;
-    var clipId = 'gemclip-' + gemClipSeq;
-    var s = '<clipPath id="' + clipId + '"><circle cx="' + fx + '" cy="' + fy + '" r="' + r + '"/></clipPath>';
-    s += '<circle cx="' + fx + '" cy="' + fy + '" r="' + r + '" fill="url(#' + g + ')"/>';
-    s += '<g clip-path="url(#' + clipId + ')">';
-    if(t === 'Opal'){
-      /* Opal: smooth cabochon dome with play-of-color glowing inside it */
-      s += '<ellipse cx="' + (x - r * .3).toFixed(1) + '" cy="' + (y - r * .22).toFixed(1) + '" rx="' + (r * .55).toFixed(1) + '" ry="' + (r * .34).toFixed(1) + '" fill="rgba(125,211,252,.4)"/>';
-      s += '<ellipse cx="' + (x + r * .32).toFixed(1) + '" cy="' + (y + r * .16).toFixed(1) + '" rx="' + (r * .5).toFixed(1) + '" ry="' + (r * .3).toFixed(1) + '" fill="rgba(249,168,212,.36)"/>';
-      s += '<ellipse cx="' + (x + r * .02).toFixed(1) + '" cy="' + (y + r * .46).toFixed(1) + '" rx="' + (r * .46).toFixed(1) + '" ry="' + (r * .24).toFixed(1) + '" fill="rgba(167,243,208,.32)"/>';
-      s += '<ellipse cx="' + (x - r * .16).toFixed(1) + '" cy="' + (y - r * .3).toFixed(1) + '" rx="' + (r * .42).toFixed(1) + '" ry="' + (r * .24).toFixed(1) + '" fill="rgba(255,255,255,.45)"/>';
-    } else {
-      /* Faceted stone: 8 crown facets around a bright octagonal table, with light held inside the stone */
-      var tableR = r * .54, tablePts = [], k, tp;
-      for(k = 0; k < 8; k++){ tp = facetPoint(x, y, tableR, k * 45 + 22.5); tablePts.push(tp.x.toFixed(1) + ',' + tp.y.toFixed(1)); }
-      for(var j = 0; j < 8; j++){
-        var a0 = j * 45 + 22.5, a1 = (j + 1) * 45 + 22.5;
-        var o0 = facetPoint(x, y, r, a0), o1 = facetPoint(x, y, r, a1);
-        var i0 = facetPoint(x, y, tableR, a0), i1 = facetPoint(x, y, tableR, a1);
-        var light = (j % 2 === 0);
-        var op = light ? (j < 3 ? .34 : .2) : (j >= 4 ? .26 : .12);
-        s += '<polygon points="' + o0.x.toFixed(1) + ',' + o0.y.toFixed(1) + ' ' + o1.x.toFixed(1) + ',' + o1.y.toFixed(1) + ' ' + i1.x.toFixed(1) + ',' + i1.y.toFixed(1) + ' ' + i0.x.toFixed(1) + ',' + i0.y.toFixed(1) + '" fill="rgba(' + (light ? '255,255,255' : '0,0,24') + ',' + op + ')"/>';
-      }
-      s += '<ellipse cx="' + (x - r * .06).toFixed(1) + '" cy="' + (y + r * .32).toFixed(1) + '" rx="' + (r * .62).toFixed(1) + '" ry="' + (r * .4).toFixed(1) + '" fill="rgba(0,0,30,.18)"/>';
-      s += '<ellipse cx="' + (x - r * .16).toFixed(1) + '" cy="' + (y - r * .2).toFixed(1) + '" rx="' + (r * .42).toFixed(1) + '" ry="' + (r * .27).toFixed(1) + '" fill="rgba(255,255,255,.4)"/>';
-      s += '<polygon points="' + tablePts.join(' ') + '" fill="rgba(255,255,255,' + (t === 'Diamond' ? '.52' : '.34') + ')"/>';
-      for(var m = 0; m < 8; m++){
-        var lp = facetPoint(x, y, r, m * 45 + 22.5);
-        s += '<line x1="' + fx + '" y1="' + fy + '" x2="' + lp.x.toFixed(1) + '" y2="' + lp.y.toFixed(1) + '" stroke="rgba(255,255,255,.38)" stroke-width=".6"/>';
-      }
-      s += '<polygon points="' + tablePts.join(' ') + '" fill="none" stroke="rgba(255,255,255,.65)" stroke-width=".7"/>';
-    }
-    /* girdle shading along the lower edge, so the stone sits with depth */
-    s += '<path d="M' + (x - r).toFixed(1) + ' ' + fy + ' A' + r + ' ' + r + ' 0 0 0 ' + (x + r).toFixed(1) + ' ' + fy + ' L' + (x + r * .72).toFixed(1) + ' ' + (y + r * .68).toFixed(1) + ' A' + (r * .99).toFixed(1) + ' ' + (r * .99).toFixed(1) + ' 0 0 1 ' + (x - r * .72).toFixed(1) + ' ' + (y + r * .68).toFixed(1) + ' Z" fill="rgba(0,0,24,.15)"/>';
-    s += '</g>';
-    s += '<circle cx="' + fx + '" cy="' + fy + '" r="' + r + '" fill="none" stroke="rgba(0,0,0,.5)" stroke-width=".9"/>';
-    s += '<circle cx="' + fx + '" cy="' + fy + '" r="' + (r - .6).toFixed(1) + '" fill="none" stroke="rgba(255,255,255,.28)" stroke-width=".6"/>';
-    /* bright specular highlight on top of the stone */
-    s += '<ellipse cx="' + (x - r * .36).toFixed(1) + '" cy="' + (y - r * .44).toFixed(1) + '" rx="' + (r * .3).toFixed(1) + '" ry="' + (r * .16).toFixed(1) + '" fill="rgba(255,255,255,.95)"/>';
-    s += '<circle cx="' + (x + r * .22).toFixed(1) + '" cy="' + (y - r * .18).toFixed(1) + '" r="' + Math.max(1, r * .09).toFixed(1) + '" fill="rgba(255,255,255,.9)"/>';
-    if(r >= 6.5) s += sparkle(x + r * .92, y - r * .92, r * (t === 'Diamond' ? .55 : .44));
-    if(r >= 13) s += sparkle(x - r * .85, y + r * .55, r * .3);
-    return s;
-  }
-  function bezelStone(x, y, r, idx){
-    var br = r + 3.5, circ = 2 * Math.PI * br;
-    var s = '<circle cx="' + x + '" cy="' + y + '" r="' + br + '" fill="' + metalPaint(idx || 0) + '" stroke="rgba(0,0,0,.4)" stroke-width=".7"/>';
-    /* polished rim: a bright specular sweep across the top of the bezel, shadowed seat under the stone */
-    s += '<circle cx="' + x + '" cy="' + y + '" r="' + br + '" fill="none" stroke="rgba(255,253,240,.9)" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="' + (circ * .2).toFixed(1) + ' ' + (circ * .8).toFixed(1) + '" transform="rotate(-126 ' + x + ' ' + y + ')"/>';
-    s += '<circle cx="' + x + '" cy="' + y + '" r="' + (r + 1.1) + '" fill="none" stroke="rgba(0,0,0,.32)" stroke-width="1.1"/>';
-    s += stoneEl(x, y, r, idx);
-    return s;
-  }
-  function haloCluster(x, y, centerR, haloR, ringDist, count){
-    var s = '';
-    for(var i = 0; i < count; i++){
-      var p = polar(x, y, ringDist, i * (360 / count));
-      s += stoneEl(p.x, p.y, haloR, i + 1);
-    }
-    s += bezelStone(x, y, centerR, 0);
-    return s;
-  }
-  function ringBand(cx, cy, r, w){
-    var s = '';
-    if(metalKey() !== 'two'){
-      s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + metalPaint(0) + '" stroke-width="' + w + '"/>';
-    } else {
-      for(var i = 0; i < 12; i++){
-        s += '<path d="' + arcSeg(cx, cy, r, i * 30, i * 30 + 31) + '" fill="none" stroke="' + metalPaint(i) + '" stroke-width="' + w + '" stroke-linecap="round"/>';
-      }
-    }
-    /* polished metal: dark inner edge at the bottom, a near-white specular sweep across the top, warm bounce light underneath */
-    s += '<path d="' + arcSeg(cx, cy, r - w * .32, 145, 215) + '" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="' + (w * .3).toFixed(1) + '" stroke-linecap="round"/>';
-    s += '<path d="' + arcSeg(cx, cy, r, -52, 52) + '" fill="none" stroke="rgba(255,252,235,.92)" stroke-width="' + Math.max(1.6, w * .3).toFixed(1) + '" stroke-linecap="round"/>';
-    s += '<path d="' + arcSeg(cx, cy, r, -30, 30) + '" fill="none" stroke="#ffffff" stroke-width="' + Math.max(1, w * .14).toFixed(1) + '" stroke-linecap="round"/>';
-    s += '<path d="' + arcSeg(cx, cy, r, 150, 210) + '" fill="none" stroke="rgba(255,236,170,.38)" stroke-width="' + Math.max(1.2, w * .22).toFixed(1) + '" stroke-linecap="round"/>';
-    return s;
-  }
-  function braceletBand(cx, cy, rx, ry, w){
-    var s = '', n = 24;
-    for(var i = 0; i < n; i++){
-      var p0 = ellipsePoint(cx, cy, rx, ry, i * (360 / n));
-      var p1 = ellipsePoint(cx, cy, rx, ry, (i + 1) * (360 / n) + 1);
-      s += '<path d="M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' L' + p1.x.toFixed(1) + ' ' + p1.y.toFixed(1) + '" stroke="' + metalPaint(i) + '" stroke-width="' + w + '" stroke-linecap="round" fill="none"/>';
-    }
-    /* polished metal: near-white specular sweep along the top of the band, warm bounce light along the bottom */
-    var t0 = ellipsePoint(cx, cy, rx, ry, 222), t1 = ellipsePoint(cx, cy, rx, ry, 318);
-    var b0 = ellipsePoint(cx, cy, rx, ry, 32), b1 = ellipsePoint(cx, cy, rx, ry, 148);
-    s += '<path d="M' + t0.x.toFixed(1) + ' ' + t0.y.toFixed(1) + ' A' + rx + ' ' + ry + ' 0 0 1 ' + t1.x.toFixed(1) + ' ' + t1.y.toFixed(1) + '" fill="none" stroke="rgba(255,252,235,.92)" stroke-width="' + Math.max(1.6, w * .3).toFixed(1) + '" stroke-linecap="round"/>';
-    s += '<path d="M' + b0.x.toFixed(1) + ' ' + b0.y.toFixed(1) + ' A' + rx + ' ' + ry + ' 0 0 1 ' + b1.x.toFixed(1) + ' ' + b1.y.toFixed(1) + '" fill="none" stroke="rgba(255,236,170,.36)" stroke-width="' + Math.max(1.2, w * .22).toFixed(1) + '" stroke-linecap="round"/>';
-    return s;
-  }
-  function qPoint(t){
-    return {
-      x: (1 - t) * (1 - t) * 55 + 2 * (1 - t) * t * 200 + t * t * 345,
-      y: (1 - t) * (1 - t) * 35 + 2 * (1 - t) * t * 290 + t * t * 35
-    };
-  }
-  function chainLinks(){
-    var s = '', n = 22;
-    for(var i = 0; i <= n; i++){
-      var t = i / n;
-      if(Math.abs(t - .5) < .045) continue;
-      var p = qPoint(t);
-      s += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4.6" fill="none" stroke="' + metalPaint(i) + '" stroke-width="2.4"/>';
-    }
-    return s;
-  }
-
-  function drawRing(){
-    var kind = layoutKind(), has = effStones().length > 0;
-    var cx = 200, cy = 168, r = 78;
-    var bandW = kind === 'delicate' ? 7 : (kind === 'tennis' ? 9 : 13);
-    var s = ringBand(cx, cy, r, bandW);
-    if(!has) return s;
-    var i, p;
-    if(kind === 'tennis'){
-      for(i = 0; i < 24; i++){ p = polar(cx, cy, r, i * 15); s += stoneEl(p.x, p.y, 6, i); }
-    } else if(kind === 'solitaire'){
-      s += '<path d="M186 97 L214 97 L206 79 L194 79 Z" fill="' + metalPaint(0) + '"/>';
-      s += bezelStone(200, 74, 19, 0);
-    } else if(kind === 'halo'){
-      s += haloCluster(200, 72, 14, 4.2, 21, 10);
-    } else if(kind === 'bold'){
-      var l = polar(cx, cy, r, -30), rr = polar(cx, cy, r, 30);
-      s += bezelStone(l.x, l.y - 2, 12, 1);
-      s += bezelStone(rr.x, rr.y - 2, 12, 2);
-      s += bezelStone(200, 70, 21, 0);
-    } else if(kind === 'delicate'){
-      s += bezelStone(200, 82, 8.5, 0);
-    } else {
-      var a = polar(cx, cy, r, -26), b = polar(cx, cy, r, 26);
-      s += stoneEl(a.x, a.y, 6.5, 1);
-      s += stoneEl(b.x, b.y, 6.5, 2);
-      s += bezelStone(200, 76, 14, 0);
-    }
-    return s;
-  }
-  function drawNecklace(){
-    var kind = layoutKind(), has = effStones().length > 0;
-    var s = '', i, p;
-    if(has && kind === 'tennis'){
-      for(i = 0; i <= 16; i++){
-        p = qPoint(0.04 + i * 0.0575);
-        s += stoneEl(p.x, p.y, 6.4, i);
-      }
-      s += bezelStone(200, 179, 9, 0);
-      return s;
-    }
-    s += chainLinks();
-    if(!has) return s;
-    var bail = '<path d="M194 157 L206 157 L203 172 L197 172 Z" fill="' + metalPaint(0) + '"/>';
-    if(kind === 'solitaire'){
-      s += bail + bezelStone(200, 192, 17, 0);
-    } else if(kind === 'halo'){
-      s += bail + haloCluster(200, 194, 13, 4, 20, 10);
-    } else if(kind === 'bold'){
-      s += bail;
-      s += bezelStone(168, 182, 12, 1);
-      s += bezelStone(232, 182, 12, 2);
-      s += bezelStone(200, 198, 19, 0);
-    } else if(kind === 'delicate'){
-      s += bail + bezelStone(200, 186, 9.5, 0);
-    } else {
-      s += bail;
-      var p1 = qPoint(.40), p2 = qPoint(.60);
-      s += stoneEl(p1.x, p1.y, 6, 1);
-      s += stoneEl(p2.x, p2.y, 6, 2);
-      s += bezelStone(200, 190, 14.5, 0);
-    }
-    return s;
-  }
-  function drawEarrings(){
-    var kind = layoutKind(), has = effStones().length > 0;
-    var s = '';
-    [138, 262].forEach(function(x, ei){
-      s += '<circle cx="' + x + '" cy="46" r="7" fill="none" stroke="' + metalPaint(ei) + '" stroke-width="3.4"/>';
-      if(!has){
-        s += '<path d="M' + x + ' 53 L' + x + ' 84" stroke="' + metalPaint(ei) + '" stroke-width="3.4"/>';
-        s += '<circle cx="' + x + '" cy="99" r="12" fill="' + metalPaint(ei + 1) + '"/>';
-        s += '<ellipse cx="' + (x - 4) + '" cy="93" rx="4.6" ry="2.8" fill="rgba(255,255,255,.9)"/>';
-        return;
-      }
-      var i;
-      if(kind === 'tennis'){
-        s += '<path d="M' + x + ' 53 L' + x + ' 172" stroke="' + metalPaint(ei) + '" stroke-width="2.6"/>';
-        for(i = 0; i < 5; i++) s += stoneEl(x, 70 + i * 25, 7, i + ei * 2);
-      } else if(kind === 'halo'){
-        s += '<path d="M' + x + ' 53 L' + x + ' 64" stroke="' + metalPaint(ei) + '" stroke-width="3"/>';
-        s += haloCluster(x, 92, 11, 3.6, 17.5, 9);
-      } else if(kind === 'bold'){
-        s += stoneEl(x, 63, 5.5, ei + 2);
-        s += '<path d="M' + x + ' 69 L' + x + ' 92" stroke="' + metalPaint(ei) + '" stroke-width="3"/>';
-        s += bezelStone(x, 117, 18, ei);
-      } else if(kind === 'delicate'){
-        s += stoneEl(x, 67, 6.5, ei);
-      } else if(kind === 'solitaire'){
-        s += bezelStone(x, 71, 12.5, ei);
-      } else {
-        s += stoneEl(x, 63, 5, ei + 2);
-        s += '<path d="M' + x + ' 68 L' + x + ' 84" stroke="' + metalPaint(ei) + '" stroke-width="3"/>';
-        s += bezelStone(x, 103, 12, ei);
-      }
+  function pickPreviewPhoto(){
+    /* Closest match wins: same piece first, then same metal, then the picked stone, then diamond. */
+    var piece = (state.piece && state.piece !== 'Custom Piece') ? state.piece : 'Ring';
+    var metal = state.metal;
+    if(metal === 'Silver Tone') metal = 'White Gold';   /* closest photographed metal */
+    if(metal === 'Two-Tone') metal = 'Yellow Gold';     /* closest photographed metal */
+    if(!metal || metal.indexOf('Not sure') === 0) metal = 'Yellow Gold';
+    var stones = effStones();
+    var stone = stones.length ? stones[0] : '';
+    if(stone === 'Mixed Stones') stone = 'Diamond';
+    var best = null, bestScore = -1;
+    PREVIEW_PHOTOS.forEach(function(p){
+      var score = 0;
+      if(p.piece === piece) score += 100;
+      if(p.metal === metal) score += 40;
+      if(stone && p.stone === stone) score += 20;
+      if(p.stone === 'Diamond') score += 5;
+      if(score > bestScore){ bestScore = score; best = p; }
     });
-    return s;
-  }
-  function drawBracelet(){
-    var kind = layoutKind(), has = effStones().length > 0;
-    var cx = 200, cy = 156, rx = 126, ry = 76;
-    var bandW = kind === 'delicate' ? 8 : (kind === 'tennis' ? 9 : 13);
-    var s = braceletBand(cx, cy, rx, ry, bandW);
-    if(!has) return s;
-    var i, p;
-    if(kind === 'tennis'){
-      for(i = 0; i < 30; i++){ p = ellipsePoint(cx, cy, rx, ry, i * 12); s += stoneEl(p.x, p.y, 6, i); }
-    } else if(kind === 'solitaire'){
-      s += bezelStone(200, 74, 16, 0);
-    } else if(kind === 'halo'){
-      s += haloCluster(200, 72, 12.5, 3.8, 19, 10);
-    } else if(kind === 'bold'){
-      var a = ellipsePoint(cx, cy, rx, ry, 243), b = ellipsePoint(cx, cy, rx, ry, 297);
-      s += bezelStone(a.x, a.y, 12, 1);
-      s += bezelStone(b.x, b.y, 12, 2);
-      s += bezelStone(200, 70, 19, 0);
-    } else if(kind === 'delicate'){
-      s += bezelStone(200, 78, 8, 0);
-    } else {
-      var c1 = ellipsePoint(cx, cy, rx, ry, 246), c2 = ellipsePoint(cx, cy, rx, ry, 294);
-      s += stoneEl(c1.x, c1.y, 6.5, 1);
-      s += stoneEl(c2.x, c2.y, 6.5, 2);
-      s += bezelStone(200, 73, 13, 0);
-    }
-    return s;
-  }
-  function drawCustom(){
-    var kind = layoutKind(), has = effStones().length > 0;
-    var s = '', i, t, x, y;
-    if(has && kind === 'tennis'){
-      for(i = 0; i <= 12; i++){
-        t = i / 12;
-        s += stoneEl(84 + t * 232, 26 + Math.sin(t * Math.PI) * 34, 5.6, i);
-      }
-    } else {
-      for(i = 0; i <= 14; i++){
-        t = i / 14;
-        x = 84 + t * 232; y = 26 + Math.sin(t * Math.PI) * 34;
-        s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4.2" fill="none" stroke="' + metalPaint(i) + '" stroke-width="2.2"/>';
-      }
-    }
-    var scale = kind === 'bold' ? 1.14 : (kind === 'delicate' ? .78 : 1);
-    var gemFill = has ? 'url(#sg-' + (stoneTypeAt(0) || 'Diamond').toLowerCase() + ')' : metalPaint(0);
-    s += '<g transform="translate(200 158) scale(' + scale + ') translate(-200 -158)">';
-    s += '<path d="M196 60 L204 60 L208 84 L192 84 Z" fill="' + metalPaint(1) + '"/>';
-    s += '<polygon points="152,96 248,96 276,132 200,224 124,132" fill="' + gemFill + '" stroke="' + metalPaint(0) + '" stroke-width="5" stroke-linejoin="round"/>';
-    s += '<polyline points="124,132 276,132" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.6"/>';
-    s += '<polyline points="152,96 176,132 200,224" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.4"/>';
-    s += '<polyline points="248,96 224,132 200,224" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.4"/>';
-    s += '<polyline points="176,132 224,132 200,96" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/>';
-    if(has){
-      /* cut-stone facets on the big gem: a bright table, lit crown facets, shaded pavilion, sparkles */
-      s += '<polygon points="176,132 224,132 200,96" fill="rgba(255,255,255,.42)"/>';
-      s += '<polygon points="152,96 200,96 176,132" fill="rgba(255,255,255,.2)"/>';
-      s += '<polygon points="248,96 276,132 224,132" fill="rgba(0,0,30,.18)"/>';
-      s += '<polygon points="124,132 176,132 200,224" fill="rgba(255,255,255,.1)"/>';
-      s += '<polygon points="176,132 224,132 200,224" fill="rgba(0,0,30,.14)"/>';
-      s += '<ellipse cx="184" cy="110" rx="27" ry="12" fill="rgba(255,255,255,.5)"/>';
-      s += sparkle(258, 106, 13);
-      s += sparkle(148, 170, 9);
-    } else {
-      /* plain polished metal gem shape: one bright sweep of light across the top */
-      s += '<polyline points="162,105 238,105" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="3" stroke-linecap="round"/>';
-    }
-    s += '</g>';
-    if(has && kind === 'halo'){
-      for(i = 0; i < 14; i++){
-        var hp = ellipsePoint(200, 156, 94, 82, i * (360 / 14));
-        s += stoneEl(hp.x, hp.y, 4, i + 1);
-      }
-    }
-    return s;
-  }
-  function stoneGrad(name, stops){
-    var out = '<radialGradient id="sg-' + name.toLowerCase() + '" cx=".36" cy=".3" r=".92">';
-    for(var i = 0; i < stops.length; i++){
-      out += '<stop offset="' + (i / (stops.length - 1)).toFixed(2) + '" stop-color="' + stops[i] + '"/>';
-    }
-    return out + '</radialGradient>';
-  }
-  function metalGrad(id, stops){
-    var out = '<linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">';
-    for(var i = 0; i < stops.length; i++){
-      out += '<stop offset="' + stops[i][0] + '" stop-color="' + stops[i][1] + '"/>';
-    }
-    return out + '</linearGradient>';
+    return best;
   }
   function drawPreview(){
-    if(!drawBox) return;
-    var piece = state.piece || 'Ring';
-    gemClipSeq = 0;
-    var inner = '';
-    if(piece === 'Necklace') inner = drawNecklace();
-    else if(piece === 'Earrings') inner = drawEarrings();
-    else if(piece === 'Bracelet') inner = drawBracelet();
-    else if(piece === 'Custom Piece') inner = drawCustom();
-    else inner = drawRing();
-    var scale = 1;
-    if(state.size === 'Small / Petite') scale = .88;
-    else if(state.size === 'Large / Oversized') scale = 1.1;
-    var shadowRx = 100, shadowY = 258;
-    if(piece === 'Necklace'){ shadowRx = 128; shadowY = 226; }
-    else if(piece === 'Earrings'){ shadowRx = 128; shadowY = 196; }
-    else if(piece === 'Bracelet'){ shadowRx = 136; shadowY = 246; }
-    else if(piece === 'Custom Piece'){ shadowRx = 106; shadowY = 238; }
-    var svg = '<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
-      + '<defs>'
-      + metalGrad('mg-yellow', [[0,'#fffdf0'],[.1,'#fff6c8'],[.24,'#fbe98d'],[.4,'#f0d060'],[.55,'#d4af37'],[.7,'#a97f22'],[.85,'#7c5c12'],[1,'#54400c']])
-      + metalGrad('mg-white', [[0,'#ffffff'],[.14,'#ffffff'],[.3,'#eef0f4'],[.48,'#d3d5de'],[.64,'#a9abb8'],[.82,'#7e808d'],[1,'#585a66']])
-      + metalGrad('mg-rose', [[0,'#fffaf5'],[.12,'#fff0e2'],[.28,'#fad9c2'],[.45,'#f0b894'],[.62,'#df9a76'],[.8,'#b06e4e'],[1,'#7d4a30']])
-      + metalGrad('mg-silver', [[0,'#ffffff'],[.14,'#f7fafc'],[.3,'#dde5ec'],[.5,'#bcc7d2'],[.68,'#8d99a8'],[.85,'#66727f'],[1,'#47525e']])
-      + stoneGrad('Diamond', ['#ffffff','#ffffff','#e8f1ff','#bcd6f5','#7ea6d8'])
-      + stoneGrad('Emerald', ['#eafff1','#8ff0b3','#2fce74','#0d8a44','#054d26'])
-      + stoneGrad('Ruby', ['#fff0f2','#ff9aa7','#f43f52','#b3122a','#6d0817'])
-      + stoneGrad('Sapphire', ['#eef4ff','#9dbdff','#4a7de0','#1d439e','#0b1e4d'])
-      + stoneGrad('Opal', ['#ffffff','#fdf6ec','#e6def5','#bcd3ea','#93a8cc'])
-      + stoneGrad('Pearl', ['#ffffff','#fffdf6','#f4ecdc','#e0d0ab','#bfa87c'])
-      + '<radialGradient id="floor-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3a2f14" stop-opacity=".85"/><stop offset=".55" stop-color="#1c1608" stop-opacity=".5"/><stop offset="1" stop-color="#000000" stop-opacity="0"/></radialGradient>'
-      + '<filter id="soft-blur" x="-40%" y="-60%" width="180%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>'
-      + '<filter id="piece-shadow" x="-30%" y="-30%" width="160%" height="175%"><feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/></filter>'
-      + '</defs>'
-      + '<rect x="0" y="0" width="400" height="300" fill="#000000"/>'
-      + '<ellipse cx="200" cy="' + (shadowY - 2) + '" rx="172" ry="42" fill="url(#floor-glow)"/>'
-      + '<ellipse cx="200" cy="' + shadowY + '" rx="' + shadowRx + '" ry="13" fill="#000000" opacity=".72" filter="url(#soft-blur)"/>'
-      + '<g filter="url(#piece-shadow)" transform="translate(200 150) scale(' + scale + ') translate(-200 -150)">' + inner + '</g>'
-      + '</svg>';
-    drawBox.innerHTML = svg;
-    var label = 'Live drawing of your custom piece: ' + (state.piece || 'Ring')
-      + (state.metal ? ', ' + state.metal : '')
-      + (effStones().length ? ', ' + effStones().join(', ') : '')
-      + (state.style ? ', ' + state.style : '');
-    drawBox.setAttribute('aria-label', label);
+    if(!previewImg) return;
+    var photo = pickPreviewPhoto();
+    if(photo){
+      if(previewImg.getAttribute('src') !== photo.src) previewImg.setAttribute('src', photo.src);
+      previewImg.setAttribute('alt', 'Real photo of the piece you are building — ' + photo.alt);
+    }
     if(previewCaption){
       previewCaption.textContent = state.piece
         ? 'Your ' + state.piece + (state.style ? ' — ' + state.style : '')
@@ -1560,7 +1194,7 @@
     }
     if(previewMeta){
       if(!state.piece){
-        previewMeta.textContent = 'Start picking on the left — your piece is drawn here as you build it, and only your piece.';
+        previewMeta.textContent = 'Start picking on the left — a real photo of your piece shows here as you build it.';
       } else {
         var bits = [];
         if(state.metal && state.metal.indexOf('Not sure') !== 0) bits.push(state.metal);
@@ -1568,8 +1202,8 @@
         if(es.length) bits.push(es.join(' + '));
         if(state.style) bits.push(state.style + ' style');
         previewMeta.textContent = bits.length
-          ? 'Drawn live from your picks: ' + bits.join(' · ') + '.'
-          : 'Your ' + state.piece.toLowerCase() + ', drawn live — add a metal, stones and a style and watch it change.';
+          ? 'Shown from your picks: ' + bits.join(' · ') + '.'
+          : 'Your ' + state.piece.toLowerCase() + ', shown live — add a metal, stones and a style and watch the photo change.';
       }
     }
   }
