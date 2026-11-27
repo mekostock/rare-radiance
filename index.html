@@ -372,6 +372,21 @@
   }
   .chip:hover{border-color:var(--gold)}
   .chip[aria-pressed="true"]{background:linear-gradient(180deg,var(--gold-light),var(--gold));color:#0d0a00;border-color:#e8c95e;font-weight:600}
+  .bstep[hidden]{display:none}
+  /* Visual diamond-shape picker: big photo on each button, name under it */
+  .shape-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:640px){.shape-grid{grid-template-columns:repeat(2,1fr)}}
+  .chip.shape-btn{
+    display:flex;flex-direction:column;align-items:stretch;gap:0;
+    padding:0;border-radius:6px;overflow:hidden;text-align:center;min-height:0;
+  }
+  .shape-btn img{width:100%;aspect-ratio:1/1;object-fit:cover}
+  .shape-btn .shape-name{padding:10px 6px 12px;font-size:15px;font-weight:500;letter-spacing:.08em;color:var(--cream)}
+  .chip.shape-btn:hover{border-color:var(--gold)}
+  .chip.shape-btn[aria-pressed="true"]{background:#0a0a09;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 8px 20px rgba(212,175,55,.22)}
+  .chip.shape-btn[aria-pressed="true"] .shape-name{background:linear-gradient(180deg,var(--gold-light),var(--gold));color:#0d0a00;font-weight:700}
+  /* Chain-size picker: the length big and clear on each button */
+  .chain-chip{font-size:19px;font-weight:600;padding:14px 22px;min-height:56px;letter-spacing:.03em}
   .idea-btn{width:100%;margin-top:10px}
   .idea-note{display:none;margin-top:12px;background:rgba(212,175,55,.1);border:1px solid var(--line);padding:14px 16px;font-size:14.5px;color:var(--cream);line-height:1.6}
   .idea-note.show{display:block}
@@ -918,8 +933,30 @@
             </div>
           </div>
 
+          <div class="bstep" data-group="shape">
+            <div class="bstep-head"><span class="bstep-num">4</span><div><h4>Diamond Shape</h4><p>See each diamond up close — tap the shape you want.</p></div></div>
+            <div class="shape-grid" role="group" aria-label="Diamond shape">
+              <button class="chip shape-btn" type="button" data-value="Round" aria-pressed="false">
+                <img src="preview-images/shape-round-diamond.webp" alt="Round diamond, shown big and up close" loading="lazy" />
+                <span class="shape-name">Round</span>
+              </button>
+              <button class="chip shape-btn" type="button" data-value="Emerald" aria-pressed="false">
+                <img src="preview-images/shape-emerald-diamond.webp" alt="Emerald-cut diamond, shown big and up close" loading="lazy" />
+                <span class="shape-name">Emerald</span>
+              </button>
+              <button class="chip shape-btn" type="button" data-value="Oval" aria-pressed="false">
+                <img src="preview-images/shape-oval-diamond.webp" alt="Oval diamond, shown big and up close" loading="lazy" />
+                <span class="shape-name">Oval</span>
+              </button>
+              <button class="chip shape-btn" type="button" data-value="Pear" aria-pressed="false">
+                <img src="preview-images/shape-pear-diamond.webp" alt="Pear-shaped diamond, shown big and up close" loading="lazy" />
+                <span class="shape-name">Pear</span>
+              </button>
+            </div>
+          </div>
+
           <div class="bstep" data-group="style">
-            <div class="bstep-head"><span class="bstep-num">4</span><div><h4>Style</h4><p>The look and feel of the finished piece.</p></div></div>
+            <div class="bstep-head"><span class="bstep-num">5</span><div><h4>Style</h4><p>The look and feel of the finished piece.</p></div></div>
             <div class="chip-row" role="group" aria-label="Style">
               <button class="chip" type="button" data-value="Classic" aria-pressed="false">Classic</button>
               <button class="chip" type="button" data-value="Modern" aria-pressed="false">Modern</button>
@@ -933,12 +970,29 @@
           </div>
 
           <div class="bstep" data-group="size">
-            <div class="bstep-head"><span class="bstep-num">5</span><div><h4>Size / Fit</h4><p>Pick a fit, then add your exact size below if you know it.</p></div></div>
+            <div class="bstep-head"><span class="bstep-num">6</span><div><h4>Size / Fit</h4><p>Pick a fit, then add your exact size below if you know it.</p></div></div>
             <div class="chip-row" role="group" aria-label="Size or fit">
               <button class="chip" type="button" data-value="Small / Petite" aria-pressed="false">Small / Petite</button>
               <button class="chip" type="button" data-value="Standard" aria-pressed="false">Standard</button>
               <button class="chip" type="button" data-value="Large / Oversized" aria-pressed="false">Large / Oversized</button>
               <button class="chip" type="button" data-value="Not sure — help me with sizing" aria-pressed="false">Not Sure Yet</button>
+            </div>
+          </div>
+
+          <div class="bstep" data-group="chainSize" id="chainStep" hidden>
+            <div class="bstep-head"><span class="bstep-num">7</span><div><h4>Chain Size</h4><p id="chainHint">Pick your length.</p></div></div>
+            <div class="chip-row" id="chainRowNecklace" role="group" aria-label="Necklace length" style="display:none">
+              <button class="chip chain-chip" type="button" data-value="16 inch" aria-pressed="false">16 inch</button>
+              <button class="chip chain-chip" type="button" data-value="18 inch" aria-pressed="false">18 inch</button>
+              <button class="chip chain-chip" type="button" data-value="20 inch" aria-pressed="false">20 inch</button>
+              <button class="chip chain-chip" type="button" data-value="22 inch" aria-pressed="false">22 inch</button>
+              <button class="chip chain-chip" type="button" data-value="24 inch" aria-pressed="false">24 inch</button>
+            </div>
+            <div class="chip-row" id="chainRowBracelet" role="group" aria-label="Bracelet length" style="display:none">
+              <button class="chip chain-chip" type="button" data-value="7 inch" aria-pressed="false">7 inch</button>
+              <button class="chip chain-chip" type="button" data-value="7.5 inch" aria-pressed="false">7.5 inch</button>
+              <button class="chip chain-chip" type="button" data-value="8 inch" aria-pressed="false">8 inch</button>
+              <button class="chip chain-chip" type="button" data-value="8.5 inch" aria-pressed="false">8.5 inch</button>
             </div>
           </div>
 
@@ -987,8 +1041,10 @@
             <li><span>Piece</span><span id="sumPiece" class="empty">Not picked yet</span></li>
             <li><span>Metal</span><span id="sumMetal" class="empty">Not picked yet</span></li>
             <li><span>Stones</span><span id="sumStones" class="empty">Not picked yet</span></li>
+            <li><span>Diamond Shape</span><span id="sumShape" class="empty">Not picked yet</span></li>
             <li><span>Style</span><span id="sumStyle" class="empty">Not picked yet</span></li>
             <li><span>Size / Fit</span><span id="sumSize" class="empty">Not picked yet</span></li>
+            <li><span>Chain Size</span><span id="sumChain" class="empty">Not picked yet</span></li>
           </ul>
           <h3 style="margin-top:6px">Your DM Message</h3>
           <p>When you&rsquo;re happy with your design, copy this and paste it into a DM to Rare Radiance — that sends your full design straight to us.</p>
@@ -1104,7 +1160,7 @@
 <script>
 (function(){
   /* ---------- Build Your Own ---------- */
-  var state = { piece:'', metal:'', stones:[], style:'', size:'' };
+  var state = { piece:'', metal:'', stones:[], shape:'', style:'', size:'', chainSize:'' };
   var exactEl = document.getElementById('bExactSize');
   var ideaEl = document.getElementById('bIdea');
   var bNameEl = document.getElementById('bName');
@@ -1134,8 +1190,12 @@
     lines.push('Piece: ' + (state.piece || 'Not picked yet'));
     lines.push('Metal: ' + (state.metal || 'Not picked yet'));
     lines.push('Stones: ' + (state.stones.length ? state.stones.join(', ') : 'Not picked yet'));
+    lines.push('Diamond shape: ' + (state.shape || 'Not picked yet'));
     lines.push('Style: ' + (state.style || 'Not picked yet'));
     lines.push('Size / fit: ' + (sizeText() || 'Not picked yet'));
+    if(state.chainSize || state.piece === 'Necklace' || state.piece === 'Bracelet'){
+      lines.push('Chain size: ' + (state.chainSize || 'Not picked yet'));
+    }
     if(ideaEl && ideaEl.value.trim()) lines.push('My idea in my own words: ' + ideaEl.value.trim());
     if(occEl && occEl.value.trim()) lines.push('Occasion / deadline: ' + occEl.value.trim());
     lines.push('Can you make this piece for me? Please let me know the next steps. Thank you!');
@@ -1200,19 +1260,44 @@
         if(state.metal && state.metal.indexOf('Not sure') !== 0) bits.push(state.metal);
         var es = effStones();
         if(es.length) bits.push(es.join(' + '));
+        if(state.shape) bits.push(state.shape + ' diamond');
         if(state.style) bits.push(state.style + ' style');
+        if(state.chainSize) bits.push(state.chainSize + (state.piece === 'Bracelet' ? ' bracelet' : ' chain'));
         previewMeta.textContent = bits.length
           ? 'Shown from your picks: ' + bits.join(' · ') + '.'
           : 'Your ' + state.piece.toLowerCase() + ', shown live — add a metal, stones and a style and watch the photo change.';
       }
     }
   }
+  /* Chain Size step: only shows for a Necklace or a Bracelet, each with its own lengths */
+  var NECK_SIZES = ['16 inch','18 inch','20 inch','22 inch','24 inch'];
+  var BRACE_SIZES = ['7 inch','7.5 inch','8 inch','8.5 inch'];
+  function syncChain(){
+    var mode = state.piece === 'Necklace' ? 'necklace' : state.piece === 'Bracelet' ? 'bracelet' : '';
+    var step = document.getElementById('chainStep');
+    if(step) step.hidden = !mode;
+    var rn = document.getElementById('chainRowNecklace');
+    var rb = document.getElementById('chainRowBracelet');
+    if(rn) rn.style.display = mode === 'necklace' ? 'flex' : 'none';
+    if(rb) rb.style.display = mode === 'bracelet' ? 'flex' : 'none';
+    var hint = document.getElementById('chainHint');
+    if(hint) hint.textContent = mode === 'bracelet' ? 'Pick your bracelet length.' : 'Pick your necklace length.';
+    var valid = mode === 'necklace' ? NECK_SIZES : mode === 'bracelet' ? BRACE_SIZES : [];
+    if(state.chainSize && valid.indexOf(state.chainSize) === -1){
+      state.chainSize = '';
+      var wrap = document.querySelector('.bstep[data-group="chainSize"]');
+      if(wrap) wrap.querySelectorAll('.chip').forEach(function(c){ pressChip('chainSize', c, false); });
+    }
+  }
   function updateBuilder(){
+    syncChain();
     setSummary('sumPiece', state.piece);
     setSummary('sumMetal', state.metal);
     setSummary('sumStones', state.stones.length ? state.stones.join(', ') : '');
+    setSummary('sumShape', state.shape);
     setSummary('sumStyle', state.style);
     setSummary('sumSize', sizeText());
+    setSummary('sumChain', state.chainSize);
     drawPreview();
     var svPiece = document.getElementById('svPiece');
     var svLine = document.getElementById('svLine');
@@ -1223,6 +1308,8 @@
       svPiece.textContent = (bits.length ? bits.join(' ') + ' ' : '') + (state.piece || 'Your custom piece');
       var lineBits = [];
       if(state.stones.length) lineBits.push(state.stones.join(' + '));
+      if(state.shape) lineBits.push(state.shape + ' cut');
+      if(state.chainSize) lineBits.push(state.chainSize);
       if(sizeText()) lineBits.push(sizeText());
       svLine.textContent = lineBits.length ? lineBits.join(' · ') : 'Start picking above and watch it come together.';
     }
@@ -1295,6 +1382,10 @@
       if(has('pearl')) stoneHits.push('Pearl');
       if(stoneHits.length){ state.stones = stoneHits; var w=document.querySelector('.bstep[data-group="stones"]'); if(w) w.querySelectorAll('.chip').forEach(function(c){ pressChip('stones',c,state.stones.indexOf(c.getAttribute('data-value'))>-1); }); picked.push(stoneHits.join(' + ')); }
       else if(has('no stone','no stones','plain')){ state.stones=['No Stones']; var w2=document.querySelector('.bstep[data-group="stones"]'); if(w2) w2.querySelectorAll('.chip').forEach(function(c){ pressChip('stones',c,c.getAttribute('data-value')==='No Stones'); }); picked.push('No Stones'); }
+      if(has('emerald cut','emerald-cut','emerald shape')){ selectSingle('shape','Emerald'); picked.push('Emerald diamond shape'); }
+      else if(has('round cut','round diamond','round shape')){ selectSingle('shape','Round'); picked.push('Round diamond shape'); }
+      else if(has('oval cut','oval diamond','oval shape')){ selectSingle('shape','Oval'); picked.push('Oval diamond shape'); }
+      else if(has('pear cut','pear-shaped','pear shaped','pear diamond','pear shape')){ selectSingle('shape','Pear'); picked.push('Pear diamond shape'); }
       if(has('vintage','antique','old school')){ selectSingle('style','Vintage'); picked.push('Vintage style'); }
       else if(has('tennis')){ selectSingle('style','Tennis Style'); picked.push('Tennis Style'); }
       else if(has('halo')){ selectSingle('style','Halo'); picked.push('Halo style'); }
@@ -1307,6 +1398,12 @@
       if(m && exactEl && !exactEl.value.trim()){ exactEl.value = 'Size ' + m[1]; picked.push('Size ' + m[1]); }
       var inch = t.match(/(\d+)\s*-?\s*inch/);
       if(inch && exactEl && !/inch/i.test(exactEl.value)){ exactEl.value = (exactEl.value.trim() ? exactEl.value.trim() + ', ' : '') + inch[1] + '-inch'; }
+      var chm = t.match(/(\d+(\.\d+)?)\s*-?\s*inch/);
+      if(chm){
+        var cand = chm[1] + ' inch';
+        var validSizes = state.piece === 'Necklace' ? NECK_SIZES : state.piece === 'Bracelet' ? BRACE_SIZES : [];
+        if(validSizes.indexOf(cand) > -1){ selectSingle('chainSize', cand); picked.push(cand + (state.piece === 'Bracelet' ? ' bracelet length' : ' chain length')); }
+      }
       updateBuilder();
       if(!ideaEl.value.trim()){
         ideaNote.innerHTML = '<strong>Write your idea first</strong> — a sentence or two is enough, like the example in the box — then tap the button again and the builder will set your choices.';
