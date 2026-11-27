@@ -388,6 +388,28 @@
   }
   .summary-visual .sv-piece{font-family:"Cormorant Garamond",serif;font-size:28px;font-weight:600;color:var(--white);line-height:1.15;margin:8px 0 0}
   .summary-visual .sv-line{color:var(--gold-pale);font-size:14px;margin:4px 0 0;letter-spacing:.04em}
+  @media(min-width:861px){.builder-side{position:sticky;top:88px}}
+  .builder-visual{margin-bottom:18px}
+  .builder-visual-frame{
+    position:relative;background:#080807;border:1px solid var(--line);padding:10px;
+  }
+  .builder-visual-frame img{
+    width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;background:#000;
+    transition:opacity .28s ease;
+  }
+  .builder-visual-frame img.is-fading{opacity:.25}
+  .builder-visual-badge{
+    position:absolute;top:18px;left:18px;background:rgba(5,5,5,.88);border:1px solid var(--gold);
+    color:var(--gold-light);font-size:10px;letter-spacing:.28em;text-transform:uppercase;font-weight:600;
+    padding:7px 10px 7px 13px;line-height:1;
+  }
+  .builder-visual-caption{
+    font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-pale);
+    font-weight:500;text-align:center;padding:12px 6px 0;margin:0;line-height:1.5;
+  }
+  .builder-visual-meta{
+    color:var(--muted);font-size:14px;text-align:center;margin:4px 0 0;line-height:1.6;padding:0 6px;
+  }
 
 
   /* ---------- Contact ---------- */
@@ -949,9 +971,17 @@
           </div>
         </div>
 
-        <div class="preview-panel">
-          <h3>Your Piece — Live Summary</h3>
-          <p>This is the piece you&rsquo;re building. It updates with every tap.</p>
+        <div class="preview-panel builder-side">
+          <h3>Your Piece — Live Preview</h3>
+          <p>See your piece as you build it. Pick a type of piece on the left and the real photo here updates right away — then it keeps updating with every choice you change.</p>
+          <div class="builder-visual">
+            <div class="builder-visual-frame">
+              <img id="builderPreviewImg" src="photos/rings-hand-marquise-pear.jpg" alt="Hand wearing marquise and pear diamond engagement rings" />
+              <span class="builder-visual-badge">Live Preview</span>
+            </div>
+            <p class="builder-visual-caption" id="builderPreviewCaption">Engagement Rings — Marquise &amp; Pear</p>
+            <p class="builder-visual-meta" id="builderPreviewMeta">Pick a piece type to see a matching piece here — ring, earrings, necklace or bracelet.</p>
+          </div>
           <div class="summary-visual" aria-hidden="true">
             <svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="#e9c95c" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M14 10 H34 L42 20 L24 40 L6 20 Z"/><path d="M6 20 H42"/><path d="M14 10 L19 20 L24 40"/><path d="M34 10 L29 20 L24 40"/></svg>
             <p class="sv-piece" id="svPiece">Your custom piece</p>
@@ -1077,76 +1107,231 @@
 
 <script>
 (function(){
-  var nameEl = document.getElementById('fName');
-  var catEl = document.getElementById('fCategory');
-  var lookEl = document.getElementById('fLook');
-  var sizeEl = document.getElementById('fSize');
-  var preview = document.getElementById('preview');
-  var copyBtn = document.getElementById('copyBtn');
-  var toast = document.getElementById('toast');
+  /* ---------- Build Your Own ---------- */
+  var state = { piece:'', metal:'', stones:[], style:'', size:'' };
+  var exactEl = document.getElementById('bExactSize');
+  var ideaEl = document.getElementById('bIdea');
+  var bNameEl = document.getElementById('bName');
+  var occEl = document.getElementById('bOccasion');
+  var bPreview = document.getElementById('buildPreview');
+  var bCopyBtn = document.getElementById('buildCopyBtn');
+  var bToast = document.getElementById('buildToast');
+  var ideaNote = document.getElementById('ideaNote');
 
-  function buildMessage(){
-    var name = nameEl.value.trim();
-    var cat = catEl.value;
-    var look = lookEl.value.trim();
-    var size = sizeEl.value.trim();
+  function setSummary(id, val){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(val){ el.textContent = val; el.classList.remove('empty'); }
+    else { el.textContent = 'Not picked yet'; el.classList.add('empty'); }
+  }
+  function sizeText(){
+    var parts = [];
+    if(state.size) parts.push(state.size);
+    if(exactEl && exactEl.value.trim()) parts.push(exactEl.value.trim());
+    return parts.join(' — ');
+  }
+  function buildDesignMessage(){
     var lines = [];
-    lines.push('Hi Rare Radiance! I would like to order.');
-    if(name) lines.push('My name is ' + name + '.');
-    lines.push('Category: ' + cat);
-    if(look) lines.push('What I am looking for: ' + look);
-    if(size) lines.push('Size / details: ' + size);
-    lines.push('Can you send me photos and prices of what is available? Thank you!');
+    lines.push('Hi Rare Radiance! I built my own custom piece with the Build Your Own studio.');
+    if(bNameEl && bNameEl.value.trim()) lines.push('My name is ' + bNameEl.value.trim() + '.');
+    lines.push('— My Design —');
+    lines.push('Piece: ' + (state.piece || 'Not picked yet'));
+    lines.push('Metal: ' + (state.metal || 'Not picked yet'));
+    lines.push('Stones: ' + (state.stones.length ? state.stones.join(', ') : 'Not picked yet'));
+    lines.push('Style: ' + (state.style || 'Not picked yet'));
+    lines.push('Size / fit: ' + (sizeText() || 'Not picked yet'));
+    if(ideaEl && ideaEl.value.trim()) lines.push('My idea in my own words: ' + ideaEl.value.trim());
+    if(occEl && occEl.value.trim()) lines.push('Occasion / deadline: ' + occEl.value.trim());
+    lines.push('Can you make this piece for me? Please let me know the next steps. Thank you!');
     return lines.join('\n');
   }
-
-  function update(){
-    preview.textContent = buildMessage();
+  var previewPhotos = {
+    'Ring': { src:'photos/rings-hand-marquise-pear.jpg', alt:'Hand wearing marquise and pear diamond engagement rings', caption:'Engagement Rings — Marquise & Pear' },
+    'Necklace': { src:'photos/necklaces-tennis-trio.jpg', alt:'Three tennis necklaces laid out side by side', caption:'Tennis Necklaces — Trio' },
+    'Earrings': { src:'photos/earrings-studs-four.jpg', alt:'Four pairs of stud earrings on display cards — cluster, butterfly and square styles', caption:'Stud Earrings' },
+    'Bracelet': { src:'photos/earrings-hearts-bracelet.jpg', alt:'Two pairs of heart earrings on display cards with a heart tennis bracelet between them', caption:'Heart Tennis Bracelet' },
+    'Custom Piece': { src:'photos/rings-hand-four-rings.jpg', alt:'Hand wearing four statement rings — a pavé crown ring, a gold coin ring, a pavé star ring and a baguette ring', caption:'Statement Rings — Custom Inspiration' }
+  };
+  var previewImg = document.getElementById('builderPreviewImg');
+  var previewCaption = document.getElementById('builderPreviewCaption');
+  var previewMeta = document.getElementById('builderPreviewMeta');
+  var lastPreviewSrc = previewImg ? previewImg.getAttribute('src') : '';
+  function updatePreviewPhoto(){
+    if(!previewImg) return;
+    var entry = previewPhotos[state.piece] || previewPhotos['Ring'];
+    /* Small refinements using other picks — still only real photos already on the site */
+    if(state.piece === 'Ring' && state.style === 'Bold Statement'){
+      entry = { src:'photos/rings-hand-four-rings.jpg', alt:'Hand wearing four statement rings — a pavé crown ring, a gold coin ring, a pavé star ring and a baguette ring', caption:'Four Statement Rings' };
+    } else if(state.piece === 'Ring' && state.style === 'Vintage'){
+      entry = { src:'photos/rings-hand-hamsa.jpg', alt:'Hand wearing a gold link band ring and a large pavé Hamsa hand ring', caption:'Link Band & Hamsa Hand Ring' };
+    } else if(state.piece === 'Necklace' && state.stones.indexOf('Emerald') > -1){
+      entry = { src:'photos/necklaces-tennis-quartet.jpg', alt:'Four tennis necklaces laid out side by side, including green and yellow stone styles', caption:'Tennis Necklaces — Quartet' };
+    } else if(state.piece === 'Earrings' && state.style === 'Bold Statement'){
+      entry = { src:'photos/earrings-hoops-four.jpg', alt:'Four pairs of hoop earrings on display cards', caption:'Hoop Earrings' };
+    } else if(state.piece === 'Earrings' && state.stones.length){
+      entry = { src:'photos/earrings-hearts-four.jpg', alt:'Four pairs of heart-shaped earrings on display cards in gold and silver tones', caption:'Heart Earrings' };
+    }
+    if(entry.src !== lastPreviewSrc){
+      lastPreviewSrc = entry.src;
+      previewImg.classList.add('is-fading');
+      var nextSrc = entry.src, nextAlt = entry.alt;
+      setTimeout(function(){
+        previewImg.src = nextSrc;
+        previewImg.alt = nextAlt;
+        previewImg.classList.remove('is-fading');
+      }, 140);
+      previewImg.alt = entry.alt;
+    }
+    if(previewCaption) previewCaption.textContent = entry.caption;
+    if(previewMeta){
+      if(!state.piece){
+        previewMeta.textContent = 'Pick a piece type to see a matching piece here — ring, earrings, necklace or bracelet.';
+      } else {
+        var detail = [];
+        if(state.metal) detail.push(state.metal);
+        if(state.stones.length) detail.push(state.stones.join(' + '));
+        if(state.style) detail.push(state.style);
+        previewMeta.textContent = detail.length
+          ? 'Your ' + state.piece + ' in the making — ' + detail.join(' · ') + '. Reference photo from the collection above.'
+          : 'Showing a real ' + state.piece.toLowerCase() + ' from the collection. Add metal, stones and style and this preview keeps updating.';
+      }
+    }
   }
-
-  [nameEl, catEl, lookEl, sizeEl].forEach(function(el){
-    el.addEventListener('input', update);
-    el.addEventListener('change', update);
-  });
-  update();
-
-  // Category cards pre-fill the form
-  var catBtns = document.querySelectorAll('[data-category]');
-  catBtns.forEach(function(btn){
-    btn.addEventListener('click', function(){
-      catEl.value = btn.getAttribute('data-category');
-      var look = btn.getAttribute('data-look');
-      if(look) lookEl.value = look;
-      update();
-      document.getElementById('order').scrollIntoView({behavior:'smooth'});
-      setTimeout(function(){ nameEl.focus({preventScroll:true}); }, 450);
+  function updateBuilder(){
+    setSummary('sumPiece', state.piece);
+    setSummary('sumMetal', state.metal);
+    setSummary('sumStones', state.stones.length ? state.stones.join(', ') : '');
+    setSummary('sumStyle', state.style);
+    setSummary('sumSize', sizeText());
+    updatePreviewPhoto();
+    var svPiece = document.getElementById('svPiece');
+    var svLine = document.getElementById('svLine');
+    if(svPiece){
+      var bits = [];
+      if(state.style) bits.push(state.style);
+      if(state.metal) bits.push(state.metal);
+      svPiece.textContent = (bits.length ? bits.join(' ') + ' ' : '') + (state.piece || 'Your custom piece');
+      var lineBits = [];
+      if(state.stones.length) lineBits.push(state.stones.join(' + '));
+      if(sizeText()) lineBits.push(sizeText());
+      svLine.textContent = lineBits.length ? lineBits.join(' · ') : 'Start picking above and watch it come together.';
+    }
+    if(bPreview) bPreview.textContent = buildDesignMessage();
+  }
+  function pressChip(group, chip, on){
+    chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  function selectSingle(group, value){
+    var wrap = document.querySelector('.bstep[data-group="' + group + '"]');
+    if(!wrap) return;
+    wrap.querySelectorAll('.chip').forEach(function(c){
+      pressChip(group, c, c.getAttribute('data-value') === value);
+    });
+    state[group] = value;
+  }
+  function toggleStone(value){
+    var exclusive = (value === 'No Stones' || value.indexOf('Not sure') === 0);
+    if(exclusive){
+      state.stones = (state.stones.indexOf(value) > -1) ? [] : [value];
+    } else {
+      state.stones = state.stones.filter(function(s){ return s !== 'No Stones' && s.indexOf('Not sure') !== 0; });
+      var i = state.stones.indexOf(value);
+      if(i > -1) state.stones.splice(i,1); else state.stones.push(value);
+    }
+    var wrap = document.querySelector('.bstep[data-group="stones"]');
+    if(wrap) wrap.querySelectorAll('.chip').forEach(function(c){
+      pressChip('stones', c, state.stones.indexOf(c.getAttribute('data-value')) > -1);
+    });
+  }
+  document.querySelectorAll('.bstep[data-group]').forEach(function(wrap){
+    var group = wrap.getAttribute('data-group');
+    wrap.querySelectorAll('.chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        var val = chip.getAttribute('data-value');
+        if(group === 'stones'){ toggleStone(val); }
+        else if(state[group] === val){ selectSingle(group, val); /* keep selected */ }
+        else { selectSingle(group, val); }
+        updateBuilder();
+      });
     });
   });
-
-  copyBtn.addEventListener('click', function(){
-    var text = buildMessage();
-    function done(){
-      toast.classList.add('show');
-      copyBtn.textContent = 'Message Copied ✓';
-      setTimeout(function(){
-        toast.classList.remove('show');
-        copyBtn.textContent = 'Copy My Message';
-      }, 4000);
-    }
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(done).catch(function(){ fallback(); });
-    } else { fallback(); }
-    function fallback(){
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); } catch(e){}
-      document.body.removeChild(ta);
-      done();
-    }
+  [exactEl, ideaEl, bNameEl, occEl].forEach(function(el){
+    if(el){ el.addEventListener('input', updateBuilder); el.addEventListener('change', updateBuilder); }
   });
+
+  /* Idea -> design choices (simple keyword helper, runs on this page) */
+  var ideaBtn = document.getElementById('ideaBtn');
+  if(ideaBtn){
+    ideaBtn.addEventListener('click', function(){
+      var t = ' ' + (ideaEl.value || '').toLowerCase() + ' ';
+      var picked = [];
+      function has(){ for(var i=0;i<arguments.length;i++){ if(t.indexOf(arguments[i]) > -1) return true; } return false; }
+      if(has('earring')){ selectSingle('piece','Earrings'); picked.push('Earrings'); }
+      else if(has('necklace','chain','pendant')){ selectSingle('piece','Necklace'); picked.push('Necklace'); }
+      else if(has('bracelet','bangle','cuff','tennis bracelet')){ selectSingle('piece','Bracelet'); picked.push('Bracelet'); }
+      else if(has('ring')){ selectSingle('piece','Ring'); picked.push('Ring'); }
+      if(has('rose gold')){ selectSingle('metal','Rose Gold'); picked.push('Rose Gold'); }
+      else if(has('white gold')){ selectSingle('metal','White Gold'); picked.push('White Gold'); }
+      else if(has('yellow gold')){ selectSingle('metal','Yellow Gold'); picked.push('Yellow Gold'); }
+      else if(has('silver')){ selectSingle('metal','Silver Tone'); picked.push('Silver Tone'); }
+      else if(has('two-tone','two tone')){ selectSingle('metal','Two-Tone'); picked.push('Two-Tone'); }
+      else if(has('gold')){ selectSingle('metal','Yellow Gold'); picked.push('Yellow Gold'); }
+      var stoneHits = [];
+      if(has('diamond')) stoneHits.push('Diamond');
+      if(has('emerald','green stone')) stoneHits.push('Emerald');
+      if(has('sapphire','blue stone')) stoneHits.push('Sapphire');
+      if(has('ruby','red stone')) stoneHits.push('Ruby');
+      if(has('opal')) stoneHits.push('Opal');
+      if(has('pearl')) stoneHits.push('Pearl');
+      if(stoneHits.length){ state.stones = stoneHits; var w=document.querySelector('.bstep[data-group="stones"]'); if(w) w.querySelectorAll('.chip').forEach(function(c){ pressChip('stones',c,state.stones.indexOf(c.getAttribute('data-value'))>-1); }); picked.push(stoneHits.join(' + ')); }
+      else if(has('no stone','no stones','plain')){ state.stones=['No Stones']; var w2=document.querySelector('.bstep[data-group="stones"]'); if(w2) w2.querySelectorAll('.chip').forEach(function(c){ pressChip('stones',c,c.getAttribute('data-value')==='No Stones'); }); picked.push('No Stones'); }
+      if(has('vintage','antique','old school')){ selectSingle('style','Vintage'); picked.push('Vintage style'); }
+      else if(has('tennis')){ selectSingle('style','Tennis Style'); picked.push('Tennis Style'); }
+      else if(has('halo')){ selectSingle('style','Halo'); picked.push('Halo style'); }
+      else if(has('solitaire','single stone')){ selectSingle('style','Solitaire'); picked.push('Solitaire style'); }
+      else if(has('bold','big','statement','chunky')){ selectSingle('style','Bold Statement'); picked.push('Bold Statement style'); }
+      else if(has('delicate','minimal','dainty','simple','small')){ selectSingle('style','Delicate & Minimal'); picked.push('Delicate & Minimal style'); }
+      else if(has('modern','sleek')){ selectSingle('style','Modern'); picked.push('Modern style'); }
+      else if(has('classic','timeless','traditional')){ selectSingle('style','Classic'); picked.push('Classic style'); }
+      var m = t.match(/size\s*(\d+(\.\d+)?)/);
+      if(m && exactEl && !exactEl.value.trim()){ exactEl.value = 'Size ' + m[1]; picked.push('Size ' + m[1]); }
+      var inch = t.match(/(\d+)\s*-?\s*inch/);
+      if(inch && exactEl && !/inch/i.test(exactEl.value)){ exactEl.value = (exactEl.value.trim() ? exactEl.value.trim() + ', ' : '') + inch[1] + '-inch'; }
+      updateBuilder();
+      if(!ideaEl.value.trim()){
+        ideaNote.innerHTML = '<strong>Write your idea first</strong> — a sentence or two is enough, like the example in the box — then tap the button again and the builder will set your choices.';
+      } else if(picked.length){
+        ideaNote.innerHTML = '<strong>Got it — here&rsquo;s your design:</strong> we set ' + picked.join(', ') + ' from your words. Check the summary, adjust any step you want, then copy your DM message.';
+      } else {
+        ideaNote.innerHTML = '<strong>We saved your words exactly as you wrote them</strong> — they&rsquo;re included in your DM message below. Try adding a metal, a stone, or words like &ldquo;vintage&rdquo; or &ldquo;bold&rdquo; and the builder will set those choices too.';
+      }
+      ideaNote.classList.add('show');
+    });
+  }
+  if(bCopyBtn){
+    bCopyBtn.addEventListener('click', function(){
+      var text = buildDesignMessage();
+      function done(){
+        bToast.classList.add('show');
+        bCopyBtn.textContent = 'Design Copied ✓';
+        setTimeout(function(){ bToast.classList.remove('show'); bCopyBtn.textContent = 'Copy My Design Message'; }, 4000);
+      }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta); done();
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(fallback); } else { fallback(); }
+    });
+  }
+  document.querySelectorAll('[data-goto-build]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.getElementById('build').scrollIntoView({behavior:'smooth'});
+    });
+  });
+  updateBuilder();
 })();
 </script>
 </body>
