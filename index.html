@@ -926,6 +926,7 @@
             <div class="chip-row" role="group" aria-label="Type of piece">
               <button class="chip" type="button" data-value="Ring" aria-pressed="false">Ring</button>
               <button class="chip" type="button" data-value="Necklace" aria-pressed="false">Necklace</button>
+              <button class="chip" type="button" data-value="Pendant" aria-pressed="false">Pendant</button>
               <button class="chip" type="button" data-value="Earrings" aria-pressed="false">Earrings</button>
               <button class="chip" type="button" data-value="Bracelet" aria-pressed="false">Bracelet</button>
               <button class="chip" type="button" data-value="Custom Piece" aria-pressed="false">Something Custom</button>
@@ -1351,6 +1352,9 @@
     { piece:'Ring',     metal:'Yellow Gold', stone:'Emerald', src:'preview-images/preview-ring-yellow-emerald.webp',     alt:'a yellow gold ring with an emerald' },
     { piece:'Ring',     metal:'Yellow Gold', stone:'Ruby',    src:'preview-images/preview-ring-yellow-ruby.webp',        alt:'a yellow gold ring with a ruby' },
     { piece:'Necklace', metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-necklace-yellow-diamond.webp', alt:'a yellow gold necklace with diamonds' },
+    { piece:'Pendant',  metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-pendant-yellow-diamond.webp',  alt:'a yellow gold pendant with a diamond' },
+    { piece:'Pendant',  metal:'White Gold',  stone:'Diamond', src:'preview-images/preview-pendant-white-diamond.webp',  alt:'a white gold pendant with a diamond' },
+    { piece:'Pendant',  metal:'Rose Gold',   stone:'Diamond', src:'preview-images/preview-pendant-rose-diamond.webp',   alt:'a rose gold pendant with a diamond' },
     { piece:'Earrings', metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-earrings-yellow-diamond.webp', alt:'yellow gold earrings with diamonds' },
     { piece:'Bracelet', metal:'Yellow Gold', stone:'Diamond', src:'preview-images/preview-bracelet-yellow-diamond.webp', alt:'a yellow gold bracelet with diamonds' }
   ];
@@ -1478,7 +1482,7 @@
   var NECK_SIZES = ['16 inch','18 inch','20 inch','22 inch','24 inch'];
   var BRACE_SIZES = ['7 inch','7.5 inch','8 inch','8.5 inch'];
   function syncChain(){
-    var mode = state.piece === 'Necklace' ? 'necklace' : state.piece === 'Bracelet' ? 'bracelet' : '';
+    var mode = (state.piece === 'Necklace' || state.piece === 'Pendant') ? 'necklace' : state.piece === 'Bracelet' ? 'bracelet' : '';
     var step = document.getElementById('chainStep');
     if(step) step.hidden = !mode;
     var rn = document.getElementById('chainRowNecklace');
@@ -1496,7 +1500,7 @@
   }
   function syncSteps(){
     syncChain();
-    var chainPiece = (state.piece === 'Necklace' || state.piece === 'Bracelet');
+    var chainPiece = (state.piece === 'Necklace' || state.piece === 'Pendant' || state.piece === 'Bracelet');
     var linkStep = document.getElementById('linkStep');
     if(linkStep) linkStep.hidden = !chainPiece;
     if(!chainPiece && state.chainLink){
@@ -1599,8 +1603,9 @@
     var shapeBefore = state.shape, chainBefore = state.chainLink;
     function has(){ for(var i=0;i<arguments.length;i++){ if(t.indexOf(arguments[i]) > -1) return true; } return false; }
     if(has('earring')){ selectSingle('piece','Earrings'); picked.push('Earrings'); }
-    else if(has('necklace','pendant')){ selectSingle('piece','Necklace'); picked.push('Necklace'); }
     else if(has('bracelet','bangle','cuff')){ selectSingle('piece','Bracelet'); picked.push('Bracelet'); }
+    else if(has('pendant','locket','charm','drop')){ selectSingle('piece','Pendant'); picked.push('Pendant'); }
+    else if(has('necklace')){ selectSingle('piece','Necklace'); picked.push('Necklace'); }
     else if(has('ring')){ selectSingle('piece','Ring'); picked.push('Ring'); }
     if(has('rose gold')){ selectSingle('metal','Rose Gold'); picked.push('Rose Gold'); }
     else if(has('white gold')){ selectSingle('metal','White Gold'); picked.push('White Gold'); }
@@ -1648,7 +1653,7 @@
     else if(has('franco')){ selectSingle('chainLink','Franco'); picked.push('Franco chain'); }
     else if(has('singapore')){ selectSingle('chainLink','Singapore'); picked.push('Singapore chain'); }
     else if(has('curb')){ selectSingle('chainLink','Curb'); picked.push('Curb chain'); }
-    else if(has('tennis') && (state.piece === 'Necklace' || state.piece === 'Bracelet')){ selectSingle('chainLink','Tennis'); picked.push('Tennis chain'); }
+    else if(has('tennis') && (state.piece === 'Necklace' || state.piece === 'Pendant' || state.piece === 'Bracelet')){ selectSingle('chainLink','Tennis'); picked.push('Tennis chain'); }
     var cm = t.match(/(\d+(?:\.\d+)?)\s*(ct|carat)/);
     if(cm){
       var n = parseFloat(cm[1]);
@@ -1660,7 +1665,7 @@
     var chm = t.match(/(\d+(?:\.\d+)?)\s*-?\s*inch/);
     if(chm){
       var cand = chm[1] + ' inch';
-      var validSizes = state.piece === 'Necklace' ? NECK_SIZES : state.piece === 'Bracelet' ? BRACE_SIZES : [];
+      var validSizes = (state.piece === 'Necklace' || state.piece === 'Pendant') ? NECK_SIZES : state.piece === 'Bracelet' ? BRACE_SIZES : [];
       if(validSizes.indexOf(cand) > -1){ selectSingle('chainSize', cand); picked.push(cand + (state.piece === 'Bracelet' ? ' bracelet length' : ' chain length')); }
     }
     if(state.shape && state.shape !== shapeBefore) lastVisual = 'shape';
@@ -1786,7 +1791,7 @@
   var rubyStep = 0; /* 0 = piece, 1 = metal, 2 = style, 3 = done */
   var RUBY_STEPS = [
     { group:'piece', ask:'First — what piece are we making?',
-      chips:['Ring','Necklace','Earrings','Bracelet'] },
+      chips:['Ring','Necklace','Pendant','Earrings','Bracelet'] },
     { group:'metal', ask:'Lovely. And the metal? Everything at Rare Radiance is gold — which gold is yours?',
       chips:['Yellow Gold','White Gold','Rose Gold','Two-Tone'] },
     { group:'style', ask:'Last one — the style. Which look do you love?',
@@ -1885,7 +1890,7 @@
     if(picked.length){
       rubySay('Done — I set <strong>' + picked.join(', ') + '</strong> for you. Your design so far: ' + rubyDesignLine() + '.');
     } else {
-      rubySay('I didn&rsquo;t catch a design detail in that — try a piece (&ldquo;ring&rdquo;), a metal (&ldquo;rose gold&rdquo;), a diamond shape (&ldquo;oval diamond&rdquo;), a stone, a size (&ldquo;2 ct&rdquo;, &ldquo;ring size 7&rdquo;), a style (&ldquo;halo&rdquo;), or a chain (&ldquo;cuban link&rdquo;).');
+      rubySay('I didn&rsquo;t catch a design detail in that — try a piece (&ldquo;ring&rdquo;, &ldquo;pendant&rdquo;, &ldquo;necklace&rdquo;), a metal (&ldquo;rose gold&rdquo;, &ldquo;gold&rdquo;), a diamond shape (&ldquo;oval diamond&rdquo;), a stone, a size (&ldquo;2 ct&rdquo;, &ldquo;ring size 7&rdquo;), a style (&ldquo;halo&rdquo;), or a chain (&ldquo;cuban link&rdquo;).');
     }
     if(rubyStep > 2) rubyFinish(); else rubyAsk();
   }
