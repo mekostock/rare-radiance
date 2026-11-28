@@ -405,6 +405,52 @@
     color:var(--muted);font-size:14px;text-align:center;margin:4px 0 0;line-height:1.6;padding:0 6px;
   }
 
+  /* ---------- Ruby — AI designer chat ---------- */
+  .ruby-panel{
+    border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:22px;
+    background:linear-gradient(180deg,#171410,var(--panel));
+  }
+  .ruby-head{display:flex;align-items:center;gap:14px}
+  .ruby-avatar{
+    width:62px;height:62px;border-radius:50%;object-fit:cover;flex:none;
+    border:2px solid var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,.18),0 6px 18px rgba(0,0,0,.5);
+  }
+  .ruby-head h4{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;color:var(--white);margin:0;line-height:1.1}
+  .ruby-head h4 span{color:var(--gold-light)}
+  .ruby-head p{color:var(--muted2);font-size:13px;margin:2px 0 0;letter-spacing:.06em}
+  .ruby-log{
+    margin-top:16px;display:flex;flex-direction:column;gap:10px;
+    max-height:340px;overflow-y:auto;padding:4px 2px;
+  }
+  .ruby-msg{
+    max-width:88%;padding:11px 14px;font-size:15px;line-height:1.55;border-radius:12px;
+  }
+  .ruby-msg.from-ruby{
+    align-self:flex-start;background:#0a0a09;border:1px solid var(--line-soft);
+    color:var(--cream);border-bottom-left-radius:3px;
+  }
+  .ruby-msg.from-ruby strong{color:var(--gold-light)}
+  .ruby-msg.from-you{
+    align-self:flex-end;background:linear-gradient(180deg,var(--gold-light),var(--gold));
+    color:#0d0a00;font-weight:500;border-bottom-right-radius:3px;
+  }
+  .ruby-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .ruby-chips:empty{display:none}
+  .ruby-chip{
+    min-height:44px;padding:10px 16px;border:1px solid var(--gold);background:rgba(212,175,55,.08);color:var(--gold-light);
+    font-size:14px;font-weight:500;letter-spacing:.02em;border-radius:999px;cursor:pointer;
+  }
+  .ruby-chip:hover{background:rgba(212,175,55,.18);color:var(--white)}
+  .ruby-copy{width:100%;margin-top:14px}
+  .ruby-copy[hidden]{display:none}
+  .ruby-row{display:flex;gap:8px;margin-top:14px}
+  .ruby-row input{
+    flex:1;min-width:0;background:#0a0a09;border:1px solid rgba(245,239,224,.2);color:var(--cream);
+    padding:12px 14px;font-size:16px;font-weight:300;border-radius:8px;outline:none;min-height:48px;
+  }
+  .ruby-row input:focus{border-color:var(--gold)}
+  .ruby-row .btn{min-height:48px;padding:10px 18px;flex:none;border-radius:8px}
+
   /* ---------- Vision studio ---------- */
   .vision-panel{
     border:1px solid var(--line);border-radius:10px;padding:22px 20px 20px;margin-bottom:8px;
@@ -794,8 +840,24 @@
       <div class="builder-grid">
         <div class="form-panel">
           <h3>Design Your Piece</h3>
-          <p>Start with your vision, or tap through the steps — change anything at any time.</p>
+          <p>Talk it through with Ruby, start with your vision, or tap through the steps — change anything at any time.</p>
 
+          <div class="ruby-panel" id="rubyPanel">
+            <div class="ruby-head">
+              <img class="ruby-avatar" src="assets/ruby-avatar.webp" alt="Ruby, your Rare Radiance jewelry designer — an elegant illustrated portrait in gold and black" />
+              <div>
+                <h4>Meet <span>Ruby</span></h4>
+                <p>Your Rare Radiance designer — she builds it with you, live.</p>
+              </div>
+            </div>
+            <div class="ruby-log" id="rubyLog" aria-live="polite" aria-label="Chat with Ruby"></div>
+            <div class="ruby-chips" id="rubyChips" role="group" aria-label="Ruby's suggestions"></div>
+            <button class="btn btn-gold ruby-copy" type="button" id="rubyCopyBtn" hidden>Copy My Design Message</button>
+            <div class="ruby-row">
+              <input id="rubyInput" type="text" placeholder="Tell Ruby what you're dreaming of…" aria-label="Message Ruby" />
+              <button class="btn btn-gold" type="button" id="rubySendBtn">Send</button>
+            </div>
+          </div>
           <div class="vision-panel">
             <h4>Start with your vision</h4>
             <p>Describe the jewelry you want — style, materials, and details. We pick the best look and make it for you.</p>
@@ -1715,6 +1777,126 @@
       if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(fallback); } else { fallback(); }
     });
   }
+  /* ---------- Ruby — your AI jewelry designer ---------- */
+  var rubyLog = document.getElementById('rubyLog');
+  var rubyChips = document.getElementById('rubyChips');
+  var rubyInput = document.getElementById('rubyInput');
+  var rubySendBtn = document.getElementById('rubySendBtn');
+  var rubyCopyBtn = document.getElementById('rubyCopyBtn');
+  var rubyStep = 0; /* 0 = piece, 1 = metal, 2 = style, 3 = done */
+  var RUBY_STEPS = [
+    { group:'piece', ask:'First — what piece are we making?',
+      chips:['Ring','Necklace','Earrings','Bracelet'] },
+    { group:'metal', ask:'Lovely. And the metal? Everything at Rare Radiance is gold — which gold is yours?',
+      chips:['Yellow Gold','White Gold','Rose Gold','Two-Tone'] },
+    { group:'style', ask:'Last one — the style. Which look do you love?',
+      chips:['Solitaire','Halo','Vintage','Modern'] }
+  ];
+  function rubyScroll(){ if(rubyLog) rubyLog.scrollTop = rubyLog.scrollHeight; }
+  function rubySay(html){
+    if(!rubyLog) return;
+    var d = document.createElement('div');
+    d.className = 'ruby-msg from-ruby';
+    d.innerHTML = html;
+    rubyLog.appendChild(d);
+    rubyScroll();
+  }
+  function rubyYou(text){
+    if(!rubyLog) return;
+    var d = document.createElement('div');
+    d.className = 'ruby-msg from-you';
+    d.textContent = text;
+    rubyLog.appendChild(d);
+    rubyScroll();
+  }
+  function rubyDesignLine(){
+    var bits = [];
+    if(state.metal) bits.push(state.metal);
+    var es = effStones();
+    if(es.length) bits.push(es.join(' + '));
+    if(state.shape) bits.push(state.shape + ' diamond');
+    if(state.carat) bits.push(state.carat);
+    if(state.style) bits.push(state.style + ' style');
+    if(state.chainLink) bits.push(state.chainLink);
+    if(state.chainSize) bits.push(state.chainSize);
+    var what = state.piece ? state.piece.toLowerCase() : 'piece';
+    return bits.length ? bits.join(', ') + ' ' + what : 'your ' + what;
+  }
+  function rubyAsk(){
+    if(!rubyChips) return;
+    rubyChips.innerHTML = '';
+    if(rubyStep > 2){
+      if(rubyCopyBtn) rubyCopyBtn.hidden = false;
+      return;
+    }
+    var step = RUBY_STEPS[rubyStep];
+    rubySay(step.ask);
+    step.chips.forEach(function(label){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ruby-chip';
+      b.textContent = label;
+      b.addEventListener('click', function(){ rubyAnswer(label); });
+      rubyChips.appendChild(b);
+    });
+  }
+  function rubyFinish(){
+    rubyStep = 3;
+    if(rubyChips) rubyChips.innerHTML = '';
+    rubySay('<strong>Your design is ready</strong> — ' + rubyDesignLine() + '. See it in the live preview: that&rsquo;s a real photo of your piece. Want a change, just tell me — a different metal, a diamond shape, a size. When it&rsquo;s perfect, tap below and copy your design message, then paste it into a DM to Rare Radiance.');
+    if(rubyCopyBtn) rubyCopyBtn.hidden = false;
+    if(window.innerWidth < 861){
+      var pp = document.querySelector('.builder-visual-panel');
+      if(pp) pp.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  }
+  function rubyAnswer(label){
+    rubyYou(label);
+    clearStartPhoto();
+    var group = RUBY_STEPS[rubyStep].group;
+    selectSingle(group, label);
+    if(group === 'piece') lastVisual = 'piece';
+    markMade();
+    updateBuilder();
+    if(rubyStep === 0) rubySay('A ' + label.toLowerCase() + ' — beautiful. It&rsquo;s in the preview already.');
+    else if(rubyStep === 1) rubySay(label + ' it is — watch the preview glow.');
+    else rubySay(label + ' — a timeless pick.');
+    rubyStep++;
+    if(rubyStep > 2) rubyFinish(); else rubyAsk();
+  }
+  function rubySend(){
+    if(!rubyInput) return;
+    var v = rubyInput.value;
+    if(!v.trim()){ rubyInput.focus(); return; }
+    rubyYou(v.trim());
+    rubyInput.value = '';
+    clearStartPhoto();
+    var picked = applyWords(v);
+    markMade();
+    updateBuilder();
+    /* A typed answer can move the guided questions forward */
+    while(rubyStep < 3){
+      var g = RUBY_STEPS[rubyStep].group;
+      if(g === 'piece' && state.piece && state.piece !== 'Custom Piece') rubyStep++;
+      else if(g === 'metal' && state.metal) rubyStep++;
+      else if(g === 'style' && state.style) rubyStep++;
+      else break;
+    }
+    if(picked.length){
+      rubySay('Done — I set <strong>' + picked.join(', ') + '</strong> for you. Your design so far: ' + rubyDesignLine() + '.');
+    } else {
+      rubySay('I didn&rsquo;t catch a design detail in that — try a piece (&ldquo;ring&rdquo;), a metal (&ldquo;rose gold&rdquo;), a diamond shape (&ldquo;oval diamond&rdquo;), a stone, a size (&ldquo;2 ct&rdquo;, &ldquo;ring size 7&rdquo;), a style (&ldquo;halo&rdquo;), or a chain (&ldquo;cuban link&rdquo;).');
+    }
+    if(rubyStep > 2) rubyFinish(); else rubyAsk();
+  }
+  if(rubySendBtn) rubySendBtn.addEventListener('click', rubySend);
+  if(rubyInput) rubyInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); rubySend(); } });
+  if(rubyCopyBtn && bCopyBtn) rubyCopyBtn.addEventListener('click', function(){ bCopyBtn.click(); });
+  if(rubyLog){
+    rubySay('Hi, I&rsquo;m <strong>Ruby</strong> — your Rare Radiance designer. Tell me what you&rsquo;re dreaming of, or tap below and I&rsquo;ll build it with you.');
+    rubyAsk();
+  }
+
   updateBuilder();
 })();
 </script>
