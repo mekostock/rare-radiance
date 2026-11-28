@@ -876,7 +876,6 @@
               <button class="chip" type="button" data-value="Yellow Gold" aria-pressed="false">Yellow Gold</button>
               <button class="chip" type="button" data-value="White Gold" aria-pressed="false">White Gold</button>
               <button class="chip" type="button" data-value="Rose Gold" aria-pressed="false">Rose Gold</button>
-              <button class="chip" type="button" data-value="Silver Tone" aria-pressed="false">Silver Tone</button>
               <button class="chip" type="button" data-value="Two-Tone" aria-pressed="false">Two-Tone</button>
               <button class="chip" type="button" data-value="Not sure — help me choose" aria-pressed="false">Not Sure Yet</button>
             </div>
@@ -1330,7 +1329,6 @@
     /* Closest match wins: same piece first, then same metal, then the picked stone, then diamond. */
     var piece = (state.piece && state.piece !== 'Custom Piece') ? state.piece : 'Ring';
     var metal = state.metal;
-    if(metal === 'Silver Tone') metal = 'White Gold';   /* closest photographed metal */
     if(metal === 'Two-Tone') metal = 'Yellow Gold';     /* closest photographed metal */
     if(!metal || metal.indexOf('Not sure') === 0) metal = 'Yellow Gold';
     var stones = effStones();
@@ -1546,7 +1544,7 @@
     else if(has('white gold')){ selectSingle('metal','White Gold'); picked.push('White Gold'); }
     else if(has('yellow gold')){ selectSingle('metal','Yellow Gold'); picked.push('Yellow Gold'); }
     else if(has('two tone')){ selectSingle('metal','Two-Tone'); picked.push('Two-Tone'); }
-    else if(has('silver')){ selectSingle('metal','Silver Tone'); picked.push('Silver Tone'); }
+    else if(has('silver')){ selectSingle('metal','White Gold'); picked.push('White Gold'); }
     else if(has('gold')){ selectSingle('metal','Yellow Gold'); picked.push('Yellow Gold'); }
     if(has('asscher')){ selectSingle('shape','Asscher'); picked.push('Asscher diamond shape'); }
     else if(has('princess')){ selectSingle('shape','Princess'); picked.push('Princess diamond shape'); }
